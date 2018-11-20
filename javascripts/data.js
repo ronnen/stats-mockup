@@ -125,7 +125,7 @@ var mainUnits = [
               {waitTime: 80, value: 64000},
               {waitTime: 92, value: 320000},
               {waitTime: 130, value: 8000},
-              {waitTime: 450, value: 64000},
+              {waitTime: 150, value: 64000},
             ],
           },
           {
@@ -148,10 +148,10 @@ var mainUnits = [
             average: 320,
             averageLabel: "10.8 Days",
             approvals: [
-              {waitTime: 90, value: 64000},
-              {waitTime: 120, value: 320000},
-              {waitTime: 340, value: 120000},
-              {waitTime: 400, value: 320000},
+              {waitTime: 420, value: 64000},
+              {waitTime: 350, value: 320000},
+              {waitTime: 370, value: 120000},
+              {waitTime: 300, value: 320000},
             ],
           },
         ],
@@ -168,6 +168,16 @@ function calculateTotalValues(originalData) {
           return c + approval.value;
         }, 0);
       }, 0);
+    });
+  });
+
+  originalData.forEach(function(unit) {
+    unit.approvers.forEach(function(approver) {
+      approver.approvalTypes.forEach(function(approvalType) {
+        approvalType.average = approvalType.approvals.reduce(function(c, approval) {
+          return c + approval.waitTime;
+        }, 0) / approvalType.approvals.length;
+      });
     });
   });
 }

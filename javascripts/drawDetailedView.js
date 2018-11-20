@@ -205,18 +205,7 @@ function drawDetailedView(mainObject, department, svg, position) {
     d3.interpolate([203,128,94],[190,94,95])
   ];
 
-  function drawSpheresGuidelines() {
-    // draw static base guideline
-    mainGroup
-      .append("svg:line")
-      .attr("class", "circular-marker")
-      .attr("fill", "transparent")
-      .attr("stroke-width", 1)
-      .attr("x1", 0 )
-      .attr("y1", 0)
-      .attr("x2", 0 )
-      .attr("y2", outerRadius - identityMargin)
-      .attr("transform", "rotate(180)");
+  function drawAverageDelayMarkers() {
 
     // draw average delay guideline
     var avgGuideGroup = mainGroup.selectAll("g.average-guide")
@@ -253,7 +242,7 @@ function drawDetailedView(mainObject, department, svg, position) {
         return outerRadius * (approvalTypesStartRadius + (index + 1) * typeMarkersGap);
       })
       .text(function (d) {
-        return d.averageLabel;
+        return waitToText(d.average);
       })
       .attr("transform", function (d, index) {
         var radius = outerRadius * (approvalTypesStartRadius + (index + 1) * typeMarkersGap);
@@ -261,6 +250,21 @@ function drawDetailedView(mainObject, department, svg, position) {
           .translate(radius, radius)
           .rotate(90)();
       });
+  }
+
+  function drawSpheresGuidelines() {
+    // draw static base guideline
+    mainGroup
+      .append("svg:line")
+      .attr("class", "circular-marker")
+      .attr("fill", "transparent")
+      .attr("stroke-width", 1)
+      .attr("x1", 0 )
+      .attr("y1", 0)
+      .attr("x2", 0 )
+      .attr("y2", outerRadius - identityMargin)
+      .attr("transform", "rotate(180)");
+
 
     // first drawing guide lines
     mainObject.approvalTypes.forEach(function (t, index) {
@@ -584,6 +588,7 @@ function drawDetailedView(mainObject, department, svg, position) {
   drawCircularTypeMarkers();
   drawSpheresGuidelines();
   drawSpheres();
+  drawAverageDelayMarkers();
   drawCenterSphere();
   drawColorfulRibbon();
 
