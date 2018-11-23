@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
+<link href="stylesheets/font-awesome-4.0.3.css" media="screen" rel="stylesheet" type="text/css"/>
 <style>
-
-    /* CSS goes here. */
     * { padding: 0; margin: 0; }
     /* check */
 
@@ -149,7 +148,7 @@
         opacity: 0.3;
     }
 
-    .menu-left {
+    .menu-right {
         width: 240px;
         background-color: rgb(74,77,93);
     }
@@ -199,11 +198,11 @@
         right: 7px;
     }
 
-    .stats-filter {
-        height: 120px;
-        border-top: solid 3px rgb(60,64,81);
+    .stats-filter, .custom-filter {
+        height: 100px;
+        border-top: solid 1px rgb(60,64,81);
         /*border-bottom: solid 2px rgb(60,64,81);*/
-        box-shadow: 0 3px #444444;
+        box-shadow: 0 2px #444444;
     }
 
     .filter-header {
@@ -212,7 +211,7 @@
         margin-right: 30px;
         margin-top: 10px;
         /*width: 100%;*/
-        top: 20px;
+        top: 9px;
         display: flex;
         flex-direction: row;
         justify-content: space-between;
@@ -255,7 +254,7 @@
     .labels {
         margin-left: 30px;
         margin-right: 30px;
-        margin-top: 10px;
+        margin-top: 13px;
         display: flex;
         flex: 1;
         flex-direction: row;
@@ -276,7 +275,7 @@
 
     .stats-slider {
         position: relative;
-        margin-top: 36px;
+        margin-top: 25px;
         height: 5px;
         margin-left: 30px;
         margin-right: 30px;
@@ -308,8 +307,41 @@
         background: none;
     }
 
-    #total-value-filter {
+    #custom-filter {
         margin-top: 100px;
+        display: flex;
+        /*align-content: center;*/
+    }
+
+    .custom-filter-container {
+        display: flex;
+        flex: 1;
+        justify-content: center;
+        align-items: center;
+        margin-left: 30px;
+        margin-right: 30px;
+        position: relative;
+    }
+
+    .filter-option {
+        display: flex;
+        flex: 1;
+        height: 35px;
+        line-height: 35px;
+        justify-content: flex-start;
+        padding-left: 10px;
+        font-size: 12px;
+        font-family: Verdana, sans-serif;
+        color: #ffffff;
+        background-color: rgb(54,58,75);
+        border-radius: 3px;
+    }
+
+    .open-filter {
+        position: absolute;
+        right: 10px;
+        color: #ffffff;
+        font-size: 16px;
     }
 
 </style>
@@ -335,7 +367,26 @@
 
 </script>
 <div class="svg-container"></div>
-<div class="menu-left">
+<div class="menu-right">
+    <div id="custom-filter" class="custom-filter">
+        <div class="custom-filter-container">
+            <div class="filter-option">Custom Filter</div>
+            <div class="open-filter fa fa-angle-down"></div>
+        </div>
+    </div>
+    <div id="time-range-filter" class="stats-filter on">
+        <div class="filter-header">
+            <div class="stats-filter-title">Time Range</div>
+            <div class="switch-container">
+                <div class="switch-handle"></div>
+            </div>
+        </div>
+        <div class="stats-slider"></div>
+        <div class="labels">
+            <div class="label-left">START DATE</div>
+            <div class="label-right">END DATE</div>
+        </div>
+    </div>
     <div id="total-value-filter" class="stats-filter on">
         <div class="filter-header">
             <div class="stats-filter-title">Total value</div>
