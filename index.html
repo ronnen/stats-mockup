@@ -47,6 +47,12 @@
         font-size: 20px;
     }
 
+    .approval-highlight {
+        stroke: red;
+        fill: transparent;
+        stroke-width: 2;
+    }
+
     .approval-value {
         font-size: 12px;
         font-family: Avenir, sans-serif;
@@ -344,9 +350,50 @@
         font-size: 16px;
     }
 
+    .submitterTooltip {
+        display: none;
+        position: absolute;
+        color: black;
+        background-color: #ffffff;
+        font-size: 12px;
+        font-family: Avenir, sans-serif;
+        text-align: left;
+        height: 55px;
+        transform: translate(0, -50%);
+        pointer-events: none;
+        border-radius: 3px;
+    }
+
+    .submitter-content {
+        color: black;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: center;
+        flex: 1;
+        height: 100%;
+        padding: 3px;
+        line-height: 15px;
+    }
+
+    .submitter-name {
+        color: rgb(116,118,129);
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .wait-time {
+        color: rgb(166,168,175);
+        font-size: 10px;
+    }
+
+    .misc {
+        color: rgb(115,127,180);
+        font-size: 10px;
+    }
+
 </style>
 <link href="d3RangeSlider.css" rel="stylesheet">
-<br>
 <script src="javascripts/vendor/d3.v5.min.js"></script>
 <script src="javascripts/vendor/d3-ease.v1.min.js"></script>
 <script src="javascripts/vendor/d3-transform.js"></script>
@@ -427,5 +474,13 @@
     value.</br>
     </br>
     Arc length indicates approval type.
+</div>
+
+<div class="submitterTooltip">
+    <div class="submitter-content">
+        <div class="submitter-name"></div>
+        <div class="wait-time"></div>
+        <div class="misc">Prompt</div>
+    </div>
 </div>
 </body>

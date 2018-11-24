@@ -38,3 +38,13 @@ var waitToText = function(value) {
 
   return waitText;
 };
+
+/*
+var getRelativeXY = function(x, y, svg, element){
+  var p = svg.createSVGPoint();
+  var ctm = element.getCTM();
+  p.x = x;
+  p.y = y;
+  return p.matrixTransform(ctm);
+};
+*/

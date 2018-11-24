@@ -6,13 +6,6 @@ function drawDetailedView(mainObject, department, svg, unitTransform, runSimulat
   var width = parseInt(d3.select('.svg-container').style('width')),
       height = parseInt(d3.select('.svg-container').style('height'));
 
-/*
-  var svg = d3.select("body").append("svg")
-    .attr("width", width)
-    .attr("height", height);
-*/
-
-  // const diameter = 0.65;
   const approvalTypesStartRadius = 0.3;
   const approvalTypesEndRadius = 0.95;
   const identityMargin = 20;
@@ -33,7 +26,7 @@ function drawDetailedView(mainObject, department, svg, unitTransform, runSimulat
     .attr("class", "detailed-group")
     .attr("transform", unitTransform)
     // .attr("transform", "translate(" + position.x + "," + position.y + ")")
-    .on("mouseleave", handleMouseOut);
+    .on("mouseleave", handleMouseLeave);
 
   function drawMainCircularShape() {
     // draws main grey circular shape
@@ -49,12 +42,12 @@ function drawDetailedView(mainObject, department, svg, unitTransform, runSimulat
       });
   }
 
-  function handleMouseOut(d, i) {
+  function handleMouseLeave(d, i) {
     if (legendToggle) return; // not removing ourselves if legend is on
     console.log("mouseleave");
+    // return; // TODO
     window.removeEventListener("click",legendClickEvent);
     d3.select(this).remove();
-    // d3.selectAll(".approver-sphere-background").classed("block-events", false); // reinstate mouseover
     d3.selectAll(".main-units").classed("selected", false).each(function(d) {
       d.selected = false;
     });
@@ -305,6 +298,40 @@ function drawDetailedView(mainObject, department, svg, unitTransform, runSimulat
 
   function drawSpheres() {
 
+    function approvalMouseEnter(d, i) {  // Add interactivity
+      console.log("mouseenter " + d.submitter);
+
+      var currentApprovalCircle = d3.select(this).select(".approval-circle-foreground");
+      var approvalRadius = parseFloat(currentApprovalCircle.attr("r"));
+
+
+      d3.select(this)
+        .append("circle")
+        .attr("class", "approval-highlight")
+        .attr("cx", currentApprovalCircle.attr("cx"))
+        .attr("cy", currentApprovalCircle.attr("cy"))
+        .attr("transform", currentApprovalCircle.attr("transform"))
+        .attr("r", parseFloat(currentApprovalCircle.attr("r")) + 5)
+        .on("mouseleave", approvalMouseLeave);
+
+      var rect = this.getBoundingClientRect();
+
+      d3.select(".submitterTooltip")
+        .style("display","block")
+        .style("left", (rect.x + rect.width/2 + approvalRadius + 10) + "px")
+        .style("top", (rect.y + rect.height/2) + "px");
+
+      d3.select(".submitter-content .submitter-name").text(d.submitter);
+      d3.select(".submitter-content .wait-time").text("Waiting " + waitToText(d.waitTime));
+    }
+
+    function approvalMouseLeave() {
+      // return; // TODO
+      d3.selectAll(".approval-highlight").remove();
+      d3.select(".submitterTooltip")
+        .style("display","none");
+    }
+
     function drawBackgroundOrForeground(foreground) {
       // now drawing spheres
       mainObject.approvalTypes.forEach(function (t, index) {
@@ -321,7 +348,7 @@ function drawDetailedView(mainObject, department, svg, unitTransform, runSimulat
         // add sphere or sphere background
         spheres
           .append("circle")
-          .attr("class", !foreground ? " main-circle-background" : "")
+          .attr("class", !foreground ? "main-circle-background" : "approval-circle-foreground")
           .attr("stroke", "transparent")
           .attr("fill", function (d) {
             if (!foreground) return;
@@ -348,6 +375,10 @@ function drawDetailedView(mainObject, department, svg, unitTransform, runSimulat
           });
 
         if (!foreground) return;
+
+        // add listener
+        spheres
+          .on("mouseenter", approvalMouseEnter);
 
         // add label
         spheres
