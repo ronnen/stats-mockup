@@ -1,7 +1,7 @@
 var firstTimeDrawDetailedView = true;
 var legendToggle = false;
 
-function drawDetailedView(mainObject, department, svg, position) {
+function drawDetailedView(mainObject, department, svg, unitTransform, runSimulation) {
 
   var width = parseInt(d3.select('.svg-container').style('width')),
       height = parseInt(d3.select('.svg-container').style('height'));
@@ -12,7 +12,7 @@ function drawDetailedView(mainObject, department, svg, position) {
     .attr("height", height);
 */
 
-  const diameter = 0.65;
+  // const diameter = 0.65;
   const approvalTypesStartRadius = 0.3;
   const approvalTypesEndRadius = 0.95;
   const identityMargin = 20;
@@ -24,17 +24,20 @@ function drawDetailedView(mainObject, department, svg, position) {
   const clockColorRibbonRadius = 0.3;
 
 // compute center and radius
-  var outerRadius = diameter/2 * height;
+  var outerRadius = zoomInDiameterFactor/2 * height;
   const typeMarkersGap = (approvalTypesEndRadius - approvalTypesStartRadius) / (mainObject.approvalTypes.length + 1);
 
-  var mainGroup = svg.append("svg:g")
-    .attr("transform", "translate(" + position.x + "," + position.y + ")")
-    // .attr("transform", "translate(" + (width/2) + "," + (height/2) + ")")
+  var mainGroup = d3.select(".main-group");
+
+  var detailedGroup = mainGroup.append("svg:g")
+    .attr("class", "detailed-group")
+    .attr("transform", unitTransform)
+    // .attr("transform", "translate(" + position.x + "," + position.y + ")")
     .on("mouseleave", handleMouseOut);
 
   function drawMainCircularShape() {
     // draws main grey circular shape
-    mainGroup.selectAll("circle")
+    detailedGroup.selectAll("circle")
       .data([{cx: 0, cy: 0, radius: outerRadius}])
       .enter()
       .append("circle")
@@ -52,7 +55,10 @@ function drawDetailedView(mainObject, department, svg, position) {
     window.removeEventListener("click",legendClickEvent);
     d3.select(this).remove();
     // d3.selectAll(".approver-sphere-background").classed("block-events", false); // reinstate mouseover
-    d3.selectAll(".main-units").classed("selected", false);
+    d3.selectAll(".main-units").classed("selected", false).each(function(d) {
+      d.selected = false;
+    });
+    runSimulation();
   }
 
   function drawCircularTypeMarkers() {
@@ -65,7 +71,7 @@ function drawDetailedView(mainObject, department, svg, position) {
     // outer identity marker (which department and employee count)
     var gap = estimateAngleGapForText(outerRadius - identityMargin, department);
 
-    mainGroup.selectAll("identity.path")
+    detailedGroup.selectAll("identity.path")
       .data([{
         radius: outerRadius - identityMargin,
         from: 0, // toRadians(-30) + gap/2,
@@ -83,7 +89,7 @@ function drawDetailedView(mainObject, department, svg, position) {
       .attr("d", function(d) {return arcSliceFull(d);});
 
     // background for the label
-    mainGroup
+    detailedGroup
       .append("svg:path")
       .attr("id", "objectIdentityPath")
       .attr("class", "background-stroke")
@@ -95,7 +101,7 @@ function drawDetailedView(mainObject, department, svg, position) {
         from: toRadians(-30) - gap/2
       }));
 
-    mainGroup
+    detailedGroup
       .append("text")
       .attr("class", "approval-type-label")
       .attr("dy", 3)
@@ -107,7 +113,7 @@ function drawDetailedView(mainObject, department, svg, position) {
 
     // approval type circular markers (approval labels)
 
-    mainGroup.selectAll("approval-type.path")
+    detailedGroup.selectAll("approval-type.path")
       .data(mainObject.approvalTypes.map(function(value, i) {
         var radius = outerRadius * (approvalTypesStartRadius + (i+1)*typeMarkersGap);
         var gap = estimateAngleGapForText(radius, value.label);
@@ -130,7 +136,7 @@ function drawDetailedView(mainObject, department, svg, position) {
     // add approval type labels on circles
 
     // background for the label
-    mainGroup
+    detailedGroup
       .selectAll("approval-type-label-background.path")
       .data(mainObject.approvalTypes.map(function(value, i) {
         var radius = outerRadius * (approvalTypesStartRadius + (i+1)*typeMarkersGap);
@@ -151,7 +157,7 @@ function drawDetailedView(mainObject, department, svg, position) {
       .attr("stroke-width", 1)
       .attr("d",  function(d) {return arcSliceFull(d);});
 
-    mainGroup
+    detailedGroup
       .selectAll("approval-type-label.text")
       .data(mainObject.approvalTypes)
       .enter()
@@ -208,7 +214,7 @@ function drawDetailedView(mainObject, department, svg, position) {
   function drawAverageDelayMarkers() {
 
     // draw average delay guideline
-    var avgGuideGroup = mainGroup.selectAll("g.average-guide")
+    var avgGuideGroup = detailedGroup.selectAll("g.average-guide")
       .data(mainObject.approvalTypes)
       .enter()
       .append("svg:g")
@@ -254,7 +260,7 @@ function drawDetailedView(mainObject, department, svg, position) {
 
   function drawSpheresGuidelines() {
     // draw static base guideline
-    mainGroup
+    detailedGroup
       .append("svg:line")
       .attr("class", "circular-marker")
       .attr("fill", "transparent")
@@ -268,7 +274,7 @@ function drawDetailedView(mainObject, department, svg, position) {
 
     // first drawing guide lines
     mainObject.approvalTypes.forEach(function (t, index) {
-      mainGroup.selectAll("bubble-guide.line")
+      detailedGroup.selectAll("bubble-guide.line")
         .data(t.approvals)
         .enter()
         .append("svg:line")
@@ -303,7 +309,7 @@ function drawDetailedView(mainObject, department, svg, position) {
       // now drawing spheres
       mainObject.approvalTypes.forEach(function (t, index) {
         var className = foreground ? "sphere" : "sphere-background";
-        var spheres = mainGroup.selectAll("g." + className + index)
+        var spheres = detailedGroup.selectAll("g." + className + index)
           .data(t.approvals)
           .enter()
           .append("svg:g")
@@ -365,9 +371,6 @@ function drawDetailedView(mainObject, department, svg, position) {
             return valueToText(d.value);
           });
 
-        d3.select(".svg-container")
-          .append("div")
-          .attr("class", "");
       });
     }
 
@@ -380,13 +383,13 @@ function drawDetailedView(mainObject, department, svg, position) {
 
     var totalValueText = valueToText(mainObject.approverTotalValue);
 
-    mainGroup
+    detailedGroup
       .append("circle")
       .attr("cx", 0)
       .attr("cy", 0)
       .attr("r", approverRadius * outerRadius)
       .attr("class", "center center-circle-background");
-    mainGroup
+    detailedGroup
       .append("text")
       .attr("class", "approver-name")
       .attr("text-anchor", "middle")
@@ -394,7 +397,7 @@ function drawDetailedView(mainObject, department, svg, position) {
       .attr("y", 0)
       .attr("dy", -5)
       .text(mainObject.approverName);
-    mainGroup
+    detailedGroup
       .append("text")
       .attr("class", "approver-value")
       .attr("text-anchor", "middle")
@@ -413,7 +416,7 @@ function drawDetailedView(mainObject, department, svg, position) {
 
     for (var i = 0; i < 360; i++) {
       var rgb = ribbonInterpolate[Math.floor(i / 90)](i % 90 / 90);
-      mainGroup
+      detailedGroup
         .append("svg:path")
         .attr("stroke", "rgb(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + ")")
         .attr("stroke-width", 5)
@@ -442,7 +445,7 @@ function drawDetailedView(mainObject, department, svg, position) {
       .innerRadius(function(d) { return d.innerRadius; })
       .outerRadius(function(d) { return d.outerRadius; });
 
-    var clockGroup = mainGroup.selectAll("g.clock-group")
+    var clockGroup = detailedGroup.selectAll("g.clock-group")
       .data([{value: 0, innerRadius: 0, outerRadius: outerRadius}])
       .enter()
       .append("svg:g")
@@ -529,7 +532,11 @@ function drawDetailedView(mainObject, department, svg, position) {
 
     var svg = d3.select("svg");
 
+    console.log("show or hide legend " + legendToggle);
+
     if (!legendToggle) {
+      d3.selectAll('.dark-legend').remove(); // just to make sure
+
       var w = window,
         d = document,
         e = d.documentElement,
@@ -546,10 +553,15 @@ function drawDetailedView(mainObject, department, svg, position) {
         .attr("width", x)
         .attr("height", y);
 
+      // by now the transform of the detailed sphere has change due to forceSimulation so
+      // need to sample it again.
+      var selectedUnit = d3.select(".main-units.selected");
+      var rect = selectedUnit.node().getBoundingClientRect();
+
       var legendGroup = darkScreen
         .append("svg:g")
-        .attr("transform", "translate(" + position.x + "," + position.y + ")");
-        // .attr("transform", "translate(" + (width/2) + "," + (height/2) + ")");
+        .attr("class", "legend-group")
+        .attr("transform", "translate(" + (rect.x + rect.width/2) + "," + (rect.y + rect.height/2) + ")");
 
       // add circular legend
       legendGroup
@@ -558,7 +570,7 @@ function drawDetailedView(mainObject, department, svg, position) {
         .attr("d", arcLegendCircle());
 
       var pX = Math.cos(toRadians(240))*(outerRadius - identityMargin),
-        pY = Math.sin(toRadians(240))*(outerRadius - identityMargin);
+          pY = Math.sin(toRadians(240))*(outerRadius - identityMargin);
 
       legendGroup
         .append("line")
@@ -571,11 +583,11 @@ function drawDetailedView(mainObject, department, svg, position) {
 
       d3.select(".mainObjectLegend")
         .style("display","block")
-        .style("left", position.x + "px")
-        .style("top", position.y + "px");
+        .style("left", (rect.x + rect.width/2) + "px")
+        .style("top", (rect.y + rect.height/2) + "px");
     }
     else {
-      window.removeEventListener("click",legendClickEvent);
+      // window.removeEventListener("click",legendClickEvent);
       d3.selectAll('.dark-legend').remove();
       d3.select(".mainObjectLegend")
         .style("display","none");
