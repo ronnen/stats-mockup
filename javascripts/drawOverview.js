@@ -39,6 +39,17 @@ function drawOverview(mainUnits) {
     })
   }));
 
+  // collect approval type
+  var approvalTypeLabels = {};
+  mainUnits.forEach(function(unit) {
+    unit.approvers.forEach(function(approver) {
+      approver.approvalTypes.forEach(function(t) {
+        approvalTypeLabels[t.label] = true;
+      });
+    })
+  });
+  approvalTypeLabels = Object.keys(approvalTypeLabels);
+
   if (firstTimeDrawOverview) {
     console.log("max approver value " + maxValue);
 
@@ -47,6 +58,7 @@ function drawOverview(mainUnits) {
       totalValueMax: maxValue,
       waitTimeMin: minWait,
       waitTimeMax: maxWait,
+      approvalTypes: approvalTypeLabels
     });
 
     firstTimeDrawOverview = false;
@@ -70,14 +82,19 @@ function drawOverview(mainUnits) {
     return angle * (Math.PI / 180);
   }
 
+  const forceX = d3.forceX(width / 2).strength(0.015)
+  const forceY = d3.forceY(height / 2).strength(0.015)
+
   // reference: https://d3indepth.com/force-layout/
   var simulation = d3.forceSimulation(mainUnits)
     // .alphaDecay(0.04)
-    .force('charge', d3.forceManyBody().strength(800))
-    .force('center', d3.forceCenter(width / 2, height / 2))
+    .velocityDecay(0.2)
+    // .force('charge', d3.forceManyBody().strength(800))
+    .force("x", forceX)
+    .force("y", forceY)
     .force('collision', d3.forceCollide().radius(function(d) {
       return (d.selected ? blownUpRadius : outerRadius) + 10; // d.radius
-    }))
+    }).iterations(10))
     .on('tick', ticked);
 
   function ticked() {
@@ -96,15 +113,13 @@ function drawOverview(mainUnits) {
         return d.selected
       })
       .attr("transform", function (d, index) {
-        console.log("calculated x y " + d.x + " " + d.y);
+        if (!isNaN(parseFloat(d.fx))) {
+          return d3.select(this).attr("transform");
+        }
         var y = d.y - (height/2);
         var x = d.x - (width/2);
-        var translate = "translate(" + x + "," + y + ")";
-        if (d.selected) {
-          // translate also the detailed sphere
-          d3.select(".detailed-group").attr("transform", translate);
-        }
-        return translate;
+        // console.log("main-unit translate " + "translate(" + x + "," + y + ")");
+        return "translate(" + x + "," + y + ")";
       });
 
     unitGroups
@@ -231,23 +246,25 @@ function drawOverview(mainUnits) {
   }
 
   function handleMouseOver(d, i) {  // Add interactivity
-    console.log("mouseover " + d.approverName);
-    // d3.selectAll(".approver-sphere-background").classed("block-events", true);
+    // console.log("mouseover " + d.approverName);
     d3.select(this.parentNode.parentNode).classed("selected", true);
     var parentData = d3.select(this.parentNode.parentNode).datum();
     parentData.selected = true;
-    // var rect = this.getBoundingClientRect();
-    var unitTransform = d3.select(this.parentNode.parentNode).attr("transform");
-    drawDetailedView(d, parentData.department, svg, unitTransform , runSimulation);
+    // var unitTransform = d3.select(this.parentNode.parentNode).attr("transform");
+    drawDetailedView(d, parentData, this.parentNode.parentNode, svg, runSimulation, simulation.stop);
     runSimulation();
 
-    function runSimulation() {
-      simulation
-        .nodes(mainUnits)
-        .force('collision', d3.forceCollide().radius(function(d) {
-          return (d.selected ? blownUpRadius : outerRadius) + 10; // d.radius
-        }))
-        .alpha(0.8).restart();
+    function runSimulation(alphaTarget) {
+      if (alphaTarget) {
+        simulation
+          .nodes(mainUnits)
+          .alphaTarget(alphaTarget).alpha(0.8).restart();
+      }
+      else {
+        simulation
+          .nodes(mainUnits)
+          .alpha(0.8).restart();
+      }
     }
   }
 

@@ -185,8 +185,16 @@ function calculateTotalValues(originalData) {
 calculateTotalValues(mainUnits);
 
 function filterDataByCriteria(originalData, criteria) {
-  // criteria {totalValueMin, totalValueMax, waitTimeMin, waitTimeMax}
+  // criteria {totalValueMin, totalValueMax, waitTimeMin, waitTimeMax, typesFilter}
   var filteredMainUnits = JSON.parse(JSON.stringify(originalData));
+
+  filteredMainUnits.forEach(function(unit) {
+    unit.approvers.forEach(function(approver) {
+      approver.approvalTypes = approver.approvalTypes.filter(function(t) {
+        return criteria.typesFilter.indexOf(t.label) >= 0;
+      });
+    })
+  });
 
   if (criteria.totalValueMin !== null) {
     filteredMainUnits = filteredMainUnits.filter(function (o) {
@@ -213,24 +221,25 @@ function filterDataByCriteria(originalData, criteria) {
       })
     });
 
-    filteredMainUnits.forEach(function(unit) {
-      unit.approvers.forEach(function(approver) {
-        approver.approvalTypes = approver.approvalTypes.filter(function(approvalType) {
-          return approvalType.approvals.length > 0;
-        })
-      })
-    });
-
-    filteredMainUnits.forEach(function(unit) {
-      unit.approvers = unit.approvers.filter(function(approver) {
-        return approver.approvalTypes.length > 0;
-      });
-    });
-
-    filteredMainUnits = filteredMainUnits.filter(function(unit) {
-      return unit.approvers.length > 0;
-    });
   }
+
+  filteredMainUnits.forEach(function(unit) {
+    unit.approvers.forEach(function(approver) {
+      approver.approvalTypes = approver.approvalTypes.filter(function(approvalType) {
+        return approvalType.approvals.length > 0;
+      })
+    })
+  });
+
+  filteredMainUnits.forEach(function(unit) {
+    unit.approvers = unit.approvers.filter(function(approver) {
+      return approver.approvalTypes.length > 0;
+    });
+  });
+
+  filteredMainUnits = filteredMainUnits.filter(function(unit) {
+    return unit.approvers.length > 0;
+  });
 
   return filteredMainUnits;
 }

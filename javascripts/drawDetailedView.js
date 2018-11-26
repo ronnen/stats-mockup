@@ -1,9 +1,9 @@
 var firstTimeDrawDetailedView = true;
 var legendToggle = false;
 
-function drawDetailedView(mainObject, department, svg, unitTransform, runSimulation) {
+function drawDetailedView(mainObject, parentData, unitNode, svg, runSimulation, stopSimulation) {
 
-  var width = parseInt(d3.select('.svg-container').style('width')),
+  var /*width = parseInt(d3.select('.svg-container').style('width')),*/
       height = parseInt(d3.select('.svg-container').style('height'));
 
   const approvalTypesStartRadius = 0.3;
@@ -16,17 +16,66 @@ function drawDetailedView(mainObject, department, svg, unitTransform, runSimulat
   const approverRadius = 0.25;
   const clockColorRibbonRadius = 0.3;
 
+  d3.select(unitNode).raise();
+
 // compute center and radius
   var outerRadius = zoomInDiameterFactor/2 * height;
   const typeMarkersGap = (approvalTypesEndRadius - approvalTypesStartRadius) / (mainObject.approvalTypes.length + 1);
 
-  var mainGroup = d3.select(".main-group");
+  // var mainGroup = d3.select(".main-group");
+  var dragOffset = {x: 0, y: 0};
+  var unitGroup = d3.select(unitNode);
 
-  var detailedGroup = mainGroup.append("svg:g")
+  var detailedGroup = unitGroup.append("svg:g")
     .attr("class", "detailed-group")
-    .attr("transform", unitTransform)
-    // .attr("transform", "translate(" + position.x + "," + position.y + ")")
-    .on("mouseleave", handleMouseLeave);
+    .on("mouseleave", handleMouseLeave)
+    .call(d3.drag()
+      .on("start", dragstarted)
+      .on("drag", dragged)
+      .on("end", dragended));
+
+  function dragstarted(d) {
+    stopSimulation();
+    d3.select(".submitterTooltip")
+      .style("display","none");
+
+    d3.select(unitNode).raise().classed("active", true);
+    var translated = getTranslation(d3.select(unitNode).attr("transform"));
+
+    // have to work with native coordinates since "main-group" changes size while dragging and affect d3.event.x and y
+    dragOffset.x = d3.event.sourceEvent.pageX - translated[0];
+    dragOffset.y = d3.event.sourceEvent.pageY - translated[1];
+    // console.log("dragOffset " + JSON.stringify(dragOffset));
+  }
+
+  function dragged(d) {
+    // console.log("d3.event " + d3.event.x + " " + d3.event.dx + " " + d3.event.sourceEvent.pageX);
+    if (d3.event.dx < -10) {
+      var jj = 1;
+    }
+    var x = d3.event.sourceEvent.pageX - dragOffset.x;
+    var y = d3.event.sourceEvent.pageY - dragOffset.y;
+    var translate = "translate(" + x + "," + y + ")";
+    d3.select(unitNode).attr("transform", translate);
+/*
+    console.log("fixing node");
+    parentData.fixed = true;
+    parentData.fx = parentData.x;
+    parentData.fy = parentData.y;
+    runSimulation(1);
+*/
+  }
+
+  function dragended(d) {
+    d3.select(unitNode).classed("active", false);
+    // var translated = getTranslation(d3.select(this).attr("transform"));
+    // suppose to fixate this node
+    console.log("fixing node");
+    parentData.fixed = true;
+    parentData.fx = parentData.x;
+    parentData.fy = parentData.y;
+    runSimulation(1);
+  }
 
   function drawMainCircularShape() {
     // draws main grey circular shape
@@ -44,14 +93,17 @@ function drawDetailedView(mainObject, department, svg, unitTransform, runSimulat
 
   function handleMouseLeave(d, i) {
     if (legendToggle) return; // not removing ourselves if legend is on
-    console.log("mouseleave");
+    // console.log("mouseleave");
     // return; // TODO
     window.removeEventListener("click",legendClickEvent);
     d3.select(this).remove();
     d3.selectAll(".main-units").classed("selected", false).each(function(d) {
       d.selected = false;
     });
-    runSimulation();
+    d3.select(".submitterTooltip")
+      .style("display","none");
+
+    runSimulation(); // TODO
   }
 
   function drawCircularTypeMarkers() {
@@ -62,7 +114,7 @@ function drawDetailedView(mainObject, department, svg, unitTransform, runSimulat
     }
 
     // outer identity marker (which department and employee count)
-    var gap = estimateAngleGapForText(outerRadius - identityMargin, department);
+    var gap = estimateAngleGapForText(outerRadius - identityMargin, parentData.department);
 
     detailedGroup.selectAll("identity.path")
       .data([{
@@ -102,7 +154,7 @@ function drawDetailedView(mainObject, department, svg, unitTransform, runSimulat
       .attr("xlink:href", "#objectIdentityPath") //place the ID of the path here
       .style("text-anchor","middle") //place the text halfway on the arc
       .attr("startOffset", "24%")
-      .text(department);
+      .text(parentData.department);
 
     // approval type circular markers (approval labels)
 
@@ -215,6 +267,8 @@ function drawDetailedView(mainObject, department, svg, unitTransform, runSimulat
       .attr("transform", function (d) {
         var sampleDegrees = -180 + approvalsRadialStart +
           (approvalsRadialEnd - approvalsRadialStart) * (d.average / maxWaitTime);
+        // console.log("sampleDegrees " + sampleDegrees + " " + waitToText(d.average));
+        d.flipText = (sampleDegrees > 0);
         return "rotate(" + sampleDegrees + ")";
       });
 
@@ -232,7 +286,7 @@ function drawDetailedView(mainObject, department, svg, unitTransform, runSimulat
     avgGuideGroup
       .append("text")
       .attr("class", "average-guide-label")
-      .attr("text-anchor", "end")
+      .attr("text-anchor", function(d) {return d.flipText ? "start" : "end"})
       .attr("dy", "1.2em")
       .attr("x", function (d, index) {
         return 0;
@@ -246,8 +300,8 @@ function drawDetailedView(mainObject, department, svg, unitTransform, runSimulat
       .attr("transform", function (d, index) {
         var radius = outerRadius * (approvalTypesStartRadius + (index + 1) * typeMarkersGap);
         return d3.svg.transform()
-          .translate(radius, radius)
-          .rotate(90)();
+          .translate(d.flipText ? -radius : radius, radius)
+          .rotate(d.flipText ? -90 : 90)();
       });
   }
 
@@ -299,7 +353,6 @@ function drawDetailedView(mainObject, department, svg, unitTransform, runSimulat
   function drawSpheres() {
 
     function approvalMouseEnter(d, i) {  // Add interactivity
-      console.log("mouseenter " + d.submitter);
 
       var currentApprovalCircle = d3.select(this).select(".approval-circle-foreground");
       var approvalRadius = parseFloat(currentApprovalCircle.attr("r"));
@@ -498,7 +551,7 @@ function drawDetailedView(mainObject, department, svg, unitTransform, runSimulat
     var clockTimeGroup = clockGroup.append("svg:g").attr("class", "clock-time");
 
     var interpolate = d3.interpolate(0.25*Math.PI, 2.25 * Math.PI);
-    var interpolateTime = d3.interpolateRound(0,60);
+    var interpolateTime = d3.interpolateRound(0,30);
 
     var textPosition = 200;
 
@@ -538,12 +591,12 @@ function drawDetailedView(mainObject, department, svg, unitTransform, runSimulat
       .attr("dy", "0.5em")
       .tween("text", function(d) {
         return function(t) {
-          var str, seconds = interpolateTime(t);
+          var str, days = interpolateTime(t);
 
-          if (seconds == 60)
-            str = "01:00";
+          if (days == 1)
+            str = "One Day";
           else
-            str = "0:" + (seconds < 10 ? "0" : "") + seconds;
+            str = days + " Days";
           d3.select(".clock-time-text").text(str);
         }
       })
