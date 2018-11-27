@@ -23,58 +23,43 @@ function drawDetailedView(mainObject, parentData, unitNode, svg, runSimulation, 
   const typeMarkersGap = (approvalTypesEndRadius - approvalTypesStartRadius) / (mainObject.approvalTypes.length + 1);
 
   // var mainGroup = d3.select(".main-group");
-  var dragOffset = {x: 0, y: 0};
   var unitGroup = d3.select(unitNode);
 
   var detailedGroup = unitGroup.append("svg:g")
     .attr("class", "detailed-group")
-    .on("mouseleave", handleMouseLeave)
+    .on("mouseleave", handleMouseLeave);
+
+  unitGroup
     .call(d3.drag()
       .on("start", dragstarted)
       .on("drag", dragged)
       .on("end", dragended));
 
   function dragstarted(d) {
-    stopSimulation();
+    // stopSimulation();
     d3.select(".submitterTooltip")
       .style("display","none");
 
     d3.select(unitNode).raise().classed("active", true);
-    var translated = getTranslation(d3.select(unitNode).attr("transform"));
+    // var translated = getTranslation(d3.select(unitNode).attr("transform"));
 
-    // have to work with native coordinates since "main-group" changes size while dragging and affect d3.event.x and y
-    dragOffset.x = d3.event.sourceEvent.pageX - translated[0];
-    dragOffset.y = d3.event.sourceEvent.pageY - translated[1];
-    // console.log("dragOffset " + JSON.stringify(dragOffset));
+    if (!d3.event.active) runSimulation(0.3); // simulation.alphaTarget(0.3).restart();
+    d.fx = d.x;
+    d.fy = d.y;
+
   }
 
   function dragged(d) {
-    // console.log("d3.event " + d3.event.x + " " + d3.event.dx + " " + d3.event.sourceEvent.pageX);
-    if (d3.event.dx < -10) {
-      var jj = 1;
-    }
-    var x = d3.event.sourceEvent.pageX - dragOffset.x;
-    var y = d3.event.sourceEvent.pageY - dragOffset.y;
-    var translate = "translate(" + x + "," + y + ")";
-    d3.select(unitNode).attr("transform", translate);
-/*
-    console.log("fixing node");
-    parentData.fixed = true;
-    parentData.fx = parentData.x;
-    parentData.fy = parentData.y;
-    runSimulation(1);
-*/
+    d.fx = d3.event.x;
+    d.fy = d3.event.y;
   }
 
   function dragended(d) {
     d3.select(unitNode).classed("active", false);
-    // var translated = getTranslation(d3.select(this).attr("transform"));
-    // suppose to fixate this node
-    console.log("fixing node");
-    parentData.fixed = true;
-    parentData.fx = parentData.x;
-    parentData.fy = parentData.y;
-    runSimulation(1);
+    // these lines commented out to fix node
+    if (!d3.event.active) runSimulation(0); // simulation.alphaTarget(0);
+    // d.fx = null;
+    // d.fy = null;
   }
 
   function drawMainCircularShape() {
@@ -99,11 +84,13 @@ function drawDetailedView(mainObject, parentData, unitNode, svg, runSimulation, 
     d3.select(this).remove();
     d3.selectAll(".main-units").classed("selected", false).each(function(d) {
       d.selected = false;
+      d.fx = null;
+      d.fy = null;
     });
     d3.select(".submitterTooltip")
       .style("display","none");
 
-    runSimulation(); // TODO
+    runSimulation(0.3); // TODO
   }
 
   function drawCircularTypeMarkers() {

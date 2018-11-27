@@ -1,7 +1,7 @@
 
 var mainUnits = [
   {
-    department: "R&D Dept. 54 employees 19 approvals",
+    department: "R&D Dept. 54 employees 18 approvals",
     approvers: [
       {
         approverName: "Billie Hollins",
@@ -44,7 +44,7 @@ var mainUnits = [
     ],
   },
   {
-    department: "Customer Success Dept. 34 employees 145 approvals",
+    department: "Customer Success Dept. 34 employees 21 approvals",
     approvers: [
       {
         approverName: "Sam Abbasi",
@@ -109,7 +109,7 @@ var mainUnits = [
     ],
   },
   {
-    department: "Marketing Dept. 26 employees 25 approvals",
+    department: "Marketing Dept. 26 employees 19 approvals",
     approvers: [
       {
         approverName: "Perikilis Nazario",
@@ -146,11 +146,12 @@ var mainUnits = [
           {
             label: "Vendor Payment",
             average: 320,
-            averageLabel: "10.8 Days",
+            averageLabel: "Calculated",
             approvals: [
               {waitTime: 420, value: 64000, submitter: "Ning Hou"},
               {waitTime: 350, value: 320000, submitter: "Steve Caper, Jr."},
               {waitTime: 370, value: 120000, submitter: "Rick Smith"},
+              {waitTime: 150, value: 10000, submitter: "Jeremy Lambeth"},
               {waitTime: 300, value: 320000, submitter: "Steve Caper, Jr."},
             ],
           },

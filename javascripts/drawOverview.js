@@ -63,10 +63,6 @@ function drawOverview(mainUnits) {
 
     firstTimeDrawOverview = false;
   }
-  else {
-    // svg = d3.select("body").append("svg");
-    // mainGroup = d3.select("g.main-group");
-  }
 
   d3.select("svg").remove();
 
@@ -87,184 +83,183 @@ function drawOverview(mainUnits) {
 
   // reference: https://d3indepth.com/force-layout/
   var simulation = d3.forceSimulation(mainUnits)
-    // .alphaDecay(0.04)
+    .alphaDecay(0.04)
     .velocityDecay(0.2)
     // .force('charge', d3.forceManyBody().strength(800))
     .force("x", forceX)
     .force("y", forceY)
     .force('collision', d3.forceCollide().radius(function(d) {
       return (d.selected ? blownUpRadius : outerRadius) + 10; // d.radius
-    }).iterations(10))
+    }).iterations(5))
     .on('tick', ticked);
 
   function ticked() {
-
-    var unitGroupsBase = mainGroup.selectAll("g.main-units")
-      .data(mainUnits, function(d) {return d.department});
-
-    var unitGroups = unitGroupsBase
-      .enter()
-      .append("svg:g");
-
     unitGroups
-      .merge(unitGroupsBase)
-      .attr("class", "main-units")
-      .classed("selected", function(d) {
-        return d.selected
-      })
       .attr("transform", function (d, index) {
-        if (!isNaN(parseFloat(d.fx))) {
-          return d3.select(this).attr("transform");
-        }
         var y = d.y - (height/2);
         var x = d.x - (width/2);
-        // console.log("main-unit translate " + "translate(" + x + "," + y + ")");
         return "translate(" + x + "," + y + ")";
       });
-
-    unitGroups
-      .append("circle")
-      .attr("r", outerRadius)
-      .attr("class", "closed-sphere-background");
-
-    unitGroupsBase.exit().remove();
-
-    // draw unit identity marker
-
-    function estimateAngleGapForText(radius, text) {
-      return text.length * 8 / (radius); // gap in radians
-    }
-
-    // outer identity marker (which department and employee count)
-
-    const fullCircle = {
-      radius: outerRadius - identityMargin,
-      from: 0,
-      to: 2*Math.PI
-    };
-
-    unitGroups // might need to change class name
-      .append("svg:path")
-      .attr("class", "identity circular-marker")
-      .attr("fill", "transparent")
-      .attr("stroke-width", function(d) {
-        return 1;
-      })
-      .attr("stroke-linejoin", "round")
-      .attr("d", function(d) {return arcSliceFull(fullCircle);});
-
-    // background for the label
-    unitGroups
-      .append("svg:path")
-      .attr("id", function(d,index) {
-        return "objectIdentityPath-" + index;
-      })
-      .attr("class", "background-stroke")
-      .attr("fill", "transparent")
-      .attr("stroke-width", 1)
-      .attr("d", function(d) {
-        var gap = estimateAngleGapForText(outerRadius - identityMargin, d.department);
-        return arcSliceFull({
-          radius: outerRadius - identityMargin,
-          to: toRadians(120) + gap/2,
-          from: toRadians(120) - gap/2
-        })
-      });
-
-    unitGroups
-      .append("text")
-      .attr("class", "approval-type-label")
-      .attr("dy", 3)
-      .append("textPath") //append a textPath to the text element
-      .attr("xlink:href", function(d,index) {
-        return "#objectIdentityPath-" + index;
-      }) //place the ID of the path here
-      .style("text-anchor","middle") //place the text halfway on the arc
-      .attr("startOffset", "76%")
-      .text(function(d) {
-        return d.department;
-      });
-
-    // add approver bubbles inside units
-
-    var approverBubbleRadius = d3.scaleLinear()
-      .domain([0, maxValue])
-      .range([0, maxApproverBubbleRatio * outerRadius]);  // corresponds to 4 color segments
-
-    var approverGroups = unitGroups
-      .selectAll("g.approver-group")
-      .data(function(d) {
-        var maxApproverValueInUnit = d3.max(d.approvers, function(a) {return a.approverTotalValue});
-        d.spreadRadius = d.approvers.length <= 1 ? 0 :
-          (d.approvers.length == 2 ?
-            minApproverBubbleRatio * outerRadius :
-              Math.max(approverBubbleRadius(maxApproverValueInUnit), minApproverBubbleRatio * outerRadius)
-          );
-        return d.approvers;
-      })
-      .enter()
-      .append("svg:g")
-      .attr("class", "approver-group")
-      .attr("transform", function (d, index) {
-        var parentData = d3.select(this.parentNode).datum();
-        var totalBubbles = parentData.approvers.length;
-        var degOffset = index * 360 / totalBubbles - 30;
-        var y = -Math.cos(toRadians(degOffset)) * parentData.spreadRadius;
-        var x = Math.sin(toRadians(degOffset)) * parentData.spreadRadius;
-        return "translate(" + x + "," + y + ")";
-      });
-
-    approverGroups
-      .append("circle")
-      .attr("r", function(d) {
-        return Math.max(approverBubbleRadius(d.approverTotalValue), minApproverBubbleRatio * outerRadius);
-      })
-      .style("mix-blend-mode", "multiply")
-      .attr("class", "approver-sphere-background")
-      .on("mouseenter", handleMouseOver);
-
-    // add label
-    approverGroups
-      .append("text")
-      .attr("class", "approver-name")
-      .attr("text-anchor", "middle")
-      .attr("dy", "-.35em")
-      .text(function (d) {
-        return d.approverName;
-      });
-
-    // add value
-    approverGroups
-      .append("text")
-      .attr("class", "approver-value")
-      .attr("text-anchor", "middle")
-      .attr("dy", "1em")
-      .text(function (d) {
-        return valueToText(d.approverTotalValue);
-      });
-
   }
 
-  function handleMouseOver(d, i) {  // Add interactivity
+  var unitGroupsBase = mainGroup.selectAll("g.main-units")
+    .data(mainUnits, function(d) {return d.department});
+
+  var unitGroups = unitGroupsBase
+    .enter()
+    .append("svg:g");
+
+  unitGroups
+    .merge(unitGroupsBase)
+    .attr("class", "main-units")
+    .classed("selected", function(d) {
+      return d.selected
+    })
+    .attr("transform", function (d, index) {
+      if (!isNaN(parseFloat(d.fx))) {
+        return d3.select(this).attr("transform");
+      }
+      var y = d.y - (height/2);
+      var x = d.x - (width/2);
+      // console.log("main-unit translate " + "translate(" + x + "," + y + ")");
+      return "translate(" + x + "," + y + ")";
+    });
+
+  unitGroups
+    .append("circle")
+    .attr("r", outerRadius)
+    .attr("class", "closed-sphere-background");
+
+  unitGroupsBase.exit().remove();
+
+  // draw unit identity marker
+
+  function estimateAngleGapForText(radius, text) {
+    return text.length * 8 / (radius); // gap in radians
+  }
+
+  // outer identity marker (which department and employee count)
+
+  const fullCircle = {
+    radius: outerRadius - identityMargin,
+    from: 0,
+    to: 2*Math.PI
+  };
+
+  unitGroups // might need to change class name
+    .append("svg:path")
+    .attr("class", "identity circular-marker")
+    .attr("fill", "transparent")
+    .attr("stroke-width", function(d) {
+      return 1;
+    })
+    .attr("stroke-linejoin", "round")
+    .attr("d", function(d) {return arcSliceFull(fullCircle);});
+
+  // background for the label
+  unitGroups
+    .append("svg:path")
+    .attr("id", function(d,index) {
+      return "objectIdentityPath-" + index;
+    })
+    .attr("class", "background-stroke")
+    .attr("fill", "transparent")
+    .attr("stroke-width", 1)
+    .attr("d", function(d) {
+      var gap = estimateAngleGapForText(outerRadius - identityMargin, d.department);
+      return arcSliceFull({
+        radius: outerRadius - identityMargin,
+        to: toRadians(120) + gap/2,
+        from: toRadians(120) - gap/2
+      })
+    });
+
+  unitGroups
+    .append("text")
+    .attr("class", "approval-type-label")
+    .attr("dy", 3)
+    .append("textPath") //append a textPath to the text element
+    .attr("xlink:href", function(d,index) {
+      return "#objectIdentityPath-" + index;
+    }) //place the ID of the path here
+    .style("text-anchor","middle") //place the text halfway on the arc
+    .attr("startOffset", "76%")
+    .text(function(d) {
+      return d.department;
+    });
+
+  // add approver bubbles inside units
+
+  var approverBubbleRadius = d3.scaleLinear()
+    .domain([0, maxValue])
+    .range([0, maxApproverBubbleRatio * outerRadius]);  // corresponds to 4 color segments
+
+  var approverGroups = unitGroups
+    .selectAll("g.approver-group")
+    .data(function(d) {
+      var maxApproverValueInUnit = d3.max(d.approvers, function(a) {return a.approverTotalValue});
+      d.spreadRadius = d.approvers.length <= 1 ? 0 :
+        (d.approvers.length == 2 ?
+          minApproverBubbleRatio * outerRadius :
+            Math.max(approverBubbleRadius(maxApproverValueInUnit), minApproverBubbleRatio * outerRadius)
+        );
+      return d.approvers;
+    })
+    .enter()
+    .append("svg:g")
+    .attr("class", "approver-group")
+    .attr("transform", function (d, index) {
+      var parentData = d3.select(this.parentNode).datum();
+      var totalBubbles = parentData.approvers.length;
+      var degOffset = index * 360 / totalBubbles - 30;
+      var y = -Math.cos(toRadians(degOffset)) * parentData.spreadRadius;
+      var x = Math.sin(toRadians(degOffset)) * parentData.spreadRadius;
+      return "translate(" + x + "," + y + ")";
+    });
+
+  approverGroups
+    .append("circle")
+    .attr("r", function(d) {
+      return Math.max(approverBubbleRadius(d.approverTotalValue), minApproverBubbleRatio * outerRadius);
+    })
+    .style("mix-blend-mode", "multiply")
+    .attr("class", "approver-sphere-background")
+    .on("mouseenter", handleMouseOver);
+
+  // add label
+  approverGroups
+    .append("text")
+    .attr("class", "approver-name")
+    .attr("text-anchor", "middle")
+    .attr("dy", "-.35em")
+    .text(function (d) {
+      return d.approverName;
+    });
+
+  // add value
+  approverGroups
+    .append("text")
+    .attr("class", "approver-value")
+    .attr("text-anchor", "middle")
+    .attr("dy", "1em")
+    .text(function (d) {
+      return valueToText(d.approverTotalValue);
+    });
+
+  function handleMouseOver(d, i) {
     // console.log("mouseover " + d.approverName);
     d3.select(this.parentNode.parentNode).classed("selected", true);
     var parentData = d3.select(this.parentNode.parentNode).datum();
     parentData.selected = true;
     // var unitTransform = d3.select(this.parentNode.parentNode).attr("transform");
     drawDetailedView(d, parentData, this.parentNode.parentNode, svg, runSimulation, simulation.stop);
-    runSimulation();
+    runSimulation(0.3);
 
     function runSimulation(alphaTarget) {
-      if (alphaTarget) {
-        simulation
-          .nodes(mainUnits)
-          .alphaTarget(alphaTarget).alpha(0.8).restart();
-      }
-      else {
-        simulation
-          .nodes(mainUnits)
-          .alpha(0.8).restart();
-      }
+      alphaTarget = alphaTarget != null ? alphaTarget : 0.3;
+      simulation
+        .nodes(mainUnits)
+        .alphaTarget(alphaTarget).restart();
     }
   }
 
