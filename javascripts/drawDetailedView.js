@@ -29,8 +29,10 @@ function drawDetailedView(mainObject, parentData, unitNode, runSimulation) {
 
   var detailedGroup = unitGroup.append("svg:g")
     .attr("class", "detailed-group")
-    .on("click", handleFlowerClick);
-    // .on("mouseleave", handleMouseLeave);
+    .on("click", handleFlowerClick)
+    .on("mouseleave", approvalMouseLeave);
+
+  // .on("mouseleave", handleMouseLeave);
 
   unitGroup
     .call(d3.drag()
@@ -335,6 +337,12 @@ function drawDetailedView(mainObject, parentData, unitNode, runSimulation) {
     });
   }
 
+  function approvalMouseLeave() {
+    d3.selectAll(".approval-highlight").remove();
+    d3.select(".submitterTooltip")
+      .style("display","none");
+  }
+
   function drawSpheres() {
 
     function approvalMouseEnter(d, i) {  // Add interactivity
@@ -361,13 +369,6 @@ function drawDetailedView(mainObject, parentData, unitNode, runSimulation) {
 
       d3.select(".submitter-content .submitter-name").text(d.submitter);
       d3.select(".submitter-content .wait-time").text("Waiting " + waitToText(d.waitTime));
-    }
-
-    function approvalMouseLeave() {
-      // return; // TODO
-      d3.selectAll(".approval-highlight").remove();
-      d3.select(".submitterTooltip")
-        .style("display","none");
     }
 
     function drawBackgroundOrForeground(foreground) {
