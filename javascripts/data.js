@@ -200,13 +200,13 @@ function filterDataByCriteria(originalData, criteria) {
   if (criteria.totalValueMin !== null) {
     filteredMainUnits = filteredMainUnits.filter(function (o) {
       return o.approvers.some(function(approver) {
-        return approver.approverTotalValue >= criteria.totalValueMin && approver.approverTotalValue <= criteria.totalValueMax;
+        return criteria.totalValueMin == null || (approver.approverTotalValue >= criteria.totalValueMin && approver.approverTotalValue <= criteria.totalValueMax);
       });
     });
 
     filteredMainUnits.forEach(function(unit) {
       unit.approvers = unit.approvers.filter(function(approver) {
-        return approver.approverTotalValue >= criteria.totalValueMin && approver.approverTotalValue <= criteria.totalValueMax;
+        return criteria.totalValueMin == null || (approver.approverTotalValue >= criteria.totalValueMin && approver.approverTotalValue <= criteria.totalValueMax);
       });
     });
   }
@@ -216,7 +216,7 @@ function filterDataByCriteria(originalData, criteria) {
       unit.approvers.forEach(function(approver) {
         approver.approvalTypes.forEach(function(approvalType) {
           approvalType.approvals = approvalType.approvals.filter(function(approval) {
-            return approval.waitTime >= criteria.waitTimeMin && approval.waitTime <= criteria.waitTimeMax;
+            return criteria.waitTimeMin == null || (approval.waitTime >= criteria.waitTimeMin && approval.waitTime <= criteria.waitTimeMax);
           })
         })
       })
@@ -243,4 +243,25 @@ function filterDataByCriteria(originalData, criteria) {
   });
 
   return filteredMainUnits;
+}
+
+function filterApproverDataByCriteria(originalData, criteria) {
+  var approver = JSON.parse(JSON.stringify(originalData));
+
+  approver.approvalTypes = approver.approvalTypes.filter(function(t) {
+    return criteria.typesFilter.indexOf(t.label) >= 0;
+  });
+
+  approver.approvalTypes.forEach(function(approvalType) {
+    approvalType.approvals = approvalType.approvals.filter(function(approval) {
+      return criteria.waitTimeMin == null || (approval.waitTime >= criteria.waitTimeMin && approval.waitTime <= criteria.waitTimeMax);
+    })
+  });
+
+  approver.approvalTypes = approver.approvalTypes.filter(function(approvalType) {
+    return approvalType.approvals.length > 0;
+  });
+
+  return approver;
+
 }

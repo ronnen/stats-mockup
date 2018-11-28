@@ -49,6 +49,11 @@ body {
     stroke-width: 2;
 }
 
+.approver-group.highlight {
+    stroke: #888888;
+    stroke-width: 2;
+}
+
 .approval-value {
     font-size: 12px;
     font-family: Avenir, sans-serif;
@@ -61,6 +66,7 @@ body {
     font-family: Avenir, sans-serif;
     fill: #ffffff;
     stroke: transparent;
+    pointer-events: none;
 }
 
 .approver-value {
@@ -68,6 +74,7 @@ body {
     font-family: Avenir, sans-serif;
     fill: #ffffff;
     stroke: transparent;
+    pointer-events: none;
 }
 
 .approval-type-label {
@@ -323,8 +330,35 @@ body {
     background: none;
 }
 
+.legend-container {
+    margin-top: 22px;
+    display: flex;
+    height: 60px;
+    justify-content: center;
+    align-items: center;
+}
+
+.legend-button {
+    font-family: Verdana, sans-serif;
+    font-size: 12px;
+    border-radius: 3px;
+    background-color: rgb(54,58,75);
+    color: #ffffff;
+    text-align: center;
+    flex: 1;
+    margin-left: 30px;
+    margin-right: 30px;
+    height: 28px;
+    padding-left: 10px;
+    padding-right: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
 #custom-filter {
-    margin-top: 50px;
+    /* margin-top: 50px; */
     display: flex;
     /*align-content: center;*/
 }

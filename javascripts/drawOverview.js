@@ -62,28 +62,39 @@ function drawOverview(mainUnits) {
     });
 
     firstTimeDrawOverview = false;
+
   }
 
   d3.select("svg").remove();
 
   svg = d3.select(".svg-container").append("svg")
     .attr("width", width)
-    .attr("height", height);
+    .attr("height", height)
+    .on("click", function() {
+      // console.log("svg-container clicked");
+      if (closeOpenFlowers()) {
+        window.dispatchEvent(new CustomEvent("drawOverviewByCriteria", {
+          detail: {  }
+        }));
+/*
+
+        simulation
+          .nodes(mainUnits)
+          .alphaTarget(0.3).restart();
+*/
+      }
+    });
 
   mainGroup = svg.append("svg:g")
     .attr("transform", "translate(" + (width / 2) + "," + (height / 2) + ")")
     .attr("class","main-group");
-
-  function toRadians (angle) {
-    return angle * (Math.PI / 180);
-  }
 
   const forceX = d3.forceX(width / 2).strength(0.015)
   const forceY = d3.forceY(height / 2).strength(0.015)
 
   // reference: https://d3indepth.com/force-layout/
   var simulation = d3.forceSimulation(mainUnits)
-    .alphaDecay(0.04)
+    .alphaDecay(0.03)
     .velocityDecay(0.2)
     // .force('charge', d3.forceManyBody().strength(800))
     .force("x", forceX)
@@ -215,6 +226,12 @@ function drawOverview(mainUnits) {
       var y = -Math.cos(toRadians(degOffset)) * parentData.spreadRadius;
       var x = Math.sin(toRadians(degOffset)) * parentData.spreadRadius;
       return "translate(" + x + "," + y + ")";
+    })
+    .on("mouseenter", function(d) {
+      d3.select(this).classed("highlight", true);
+    })
+    .on("mouseleave", function(d) {
+      d3.select(this).classed("highlight", false);
     });
 
   approverGroups
@@ -224,7 +241,8 @@ function drawOverview(mainUnits) {
     })
     .style("mix-blend-mode", "multiply")
     .attr("class", "approver-sphere-background")
-    .on("mouseenter", handleMouseOver);
+    .on("click", handleClick);
+    // .on("mouseenter", handleMouseOver);
 
   // add label
   approverGroups
@@ -246,14 +264,43 @@ function drawOverview(mainUnits) {
       return valueToText(d.approverTotalValue);
     });
 
-  function handleMouseOver(d, i) {
-    // console.log("mouseover " + d.approverName);
+  function closeOpenFlowers() {
+    // there's supposed to be only one really
+    console.log("main unit clicked");
+    var any = d3.selectAll(".main-units.selected .detailed-group").nodes().length;
+    if (any) {
+      d3.selectAll(".main-units.selected .detailed-group").remove();
+      d3.select(".main-units.selected").on('mousedown.drag', null);
+      d3.selectAll(".main-units").classed("selected", false).each(function(d) {
+        d.selected = false;
+        d.fx = null;
+        d.fy = null;
+      });
+      d3.select(".submitterTooltip")
+        .style("display","none");
+    }
+
+    return any;
+  }
+
+  function handleClick(d, i) {
+    d3.event.stopPropagation();
+
+    // first close all open flowers
+    closeOpenFlowers();
+
     d3.select(this.parentNode.parentNode).classed("selected", true);
     var parentData = d3.select(this.parentNode.parentNode).datum();
-    parentData.selected = true;
-    // var unitTransform = d3.select(this.parentNode.parentNode).attr("transform");
-    drawDetailedView(d, parentData, this.parentNode.parentNode, svg, runSimulation, simulation.stop);
+    parentData.selected = true; // department marked as selected
+    d.selected = true; // approver marked as selected
+    window.dispatchEvent(new CustomEvent("drawOverviewByCriteria", { detail : {} }));
     runSimulation(0.3);
+/*
+    var parentData = d3.select(this.parentNode.parentNode).datum();
+    parentData.selected = true; // department marked as selected
+    drawDetailedView(d, parentData, this.parentNode.parentNode, runSimulation);
+    runSimulation(0.3);
+*/
 
     function runSimulation(alphaTarget) {
       alphaTarget = alphaTarget != null ? alphaTarget : 0.3;

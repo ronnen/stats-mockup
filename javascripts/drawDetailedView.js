@@ -1,10 +1,9 @@
 var firstTimeDrawDetailedView = true;
-var legendToggle = false;
 
-function drawDetailedView(mainObject, parentData, unitNode, svg, runSimulation, stopSimulation) {
+function drawDetailedView(mainObject, parentData, unitNode, runSimulation) {
 
-  var /*width = parseInt(d3.select('.svg-container').style('width')),*/
-      height = parseInt(d3.select('.svg-container').style('height'));
+  var height = parseInt(d3.select('.svg-container').style('height'));
+  runSimulation = runSimulation || function() {};
 
   const approvalTypesStartRadius = 0.3;
   const approvalTypesEndRadius = 0.95;
@@ -25,9 +24,13 @@ function drawDetailedView(mainObject, parentData, unitNode, svg, runSimulation, 
   // var mainGroup = d3.select(".main-group");
   var unitGroup = d3.select(unitNode);
 
+  // ensure cleanup before we start
+  d3.selectAll(".main-units .detailed-group").remove();
+
   var detailedGroup = unitGroup.append("svg:g")
     .attr("class", "detailed-group")
-    .on("mouseleave", handleMouseLeave);
+    .on("click", handleFlowerClick);
+    // .on("mouseleave", handleMouseLeave);
 
   unitGroup
     .call(d3.drag()
@@ -76,11 +79,7 @@ function drawDetailedView(mainObject, parentData, unitNode, svg, runSimulation, 
       });
   }
 
-  function handleMouseLeave(d, i) {
-    if (legendToggle) return; // not removing ourselves if legend is on
-    // console.log("mouseleave");
-    // return; // TODO
-    window.removeEventListener("click",legendClickEvent);
+  function handleFlowerClick(d, i) {
     d3.select(this).remove();
     d3.selectAll(".main-units").classed("selected", false).each(function(d) {
       d.selected = false;
@@ -90,7 +89,10 @@ function drawDetailedView(mainObject, parentData, unitNode, svg, runSimulation, 
     d3.select(".submitterTooltip")
       .style("display","none");
 
-    runSimulation(0.3); // TODO
+    window.dispatchEvent(new CustomEvent("drawOverviewByCriteria", {
+      detail: {  }
+    }));
+
   }
 
   function drawCircularTypeMarkers() {
@@ -216,10 +218,6 @@ function drawDetailedView(mainObject, parentData, unitNode, svg, runSimulation, 
   var maxValue = d3.max(mainObject.approvalTypes.map(function(v) {
     return d3.max(v.approvals, function(a) {return a.value})
   }));
-
-  function toRadians (angle) {
-    return angle * (Math.PI / 180);
-  }
 
   // for interpolation purposes (approvals don't occupy entire circle to keep space for legend)
   const approvalsGlobalSlice = (approvalsRadialEnd - approvalsRadialStart)/360;
@@ -591,81 +589,6 @@ function drawDetailedView(mainObject, parentData, unitNode, svg, runSimulation, 
 
 
   }
-
-  window.addEventListener("click",legendClickEvent);
-
-  function legendClickEvent(event) {
-    var arcLegendCircle = d3.arc()
-      .startAngle(0)
-      .endAngle(toRadians(330))
-      .innerRadius(outerRadius - identityMargin)
-      .outerRadius(outerRadius - identityMargin);
-
-    var svg = d3.select("svg");
-
-    console.log("show or hide legend " + legendToggle);
-
-    if (!legendToggle) {
-      d3.selectAll('.dark-legend').remove(); // just to make sure
-
-      var w = window,
-        d = document,
-        e = d.documentElement,
-        g = d.getElementsByTagName('.svg-container')[0],
-        x = w.innerWidth || e.clientWidth || g.clientWidth,
-        y = w.innerHeight || e.clientHeight || g.clientHeight;
-
-      var darkScreen = svg
-        .append("svg:g")
-        .attr("class", "dark-legend");
-
-      darkScreen
-        .append("rect")
-        .attr("width", x)
-        .attr("height", y);
-
-      // by now the transform of the detailed sphere has change due to forceSimulation so
-      // need to sample it again.
-      var selectedUnit = d3.select(".main-units.selected");
-      var rect = selectedUnit.node().getBoundingClientRect();
-
-      var legendGroup = darkScreen
-        .append("svg:g")
-        .attr("class", "legend-group")
-        .attr("transform", "translate(" + (rect.x + rect.width/2) + "," + (rect.y + rect.height/2) + ")");
-
-      // add circular legend
-      legendGroup
-        .append("svg:path")
-        .attr("class", "circular-legend")
-        .attr("d", arcLegendCircle());
-
-      var pX = Math.cos(toRadians(240))*(outerRadius - identityMargin),
-          pY = Math.sin(toRadians(240))*(outerRadius - identityMargin);
-
-      legendGroup
-        .append("line")
-        .attr("class", "circular-legend")
-        .attr("x1", pX).attr("y1", pY).attr("x2", pX-40).attr("y2", pY);
-      legendGroup
-        .append("line")
-        .attr("class", "circular-legend")
-        .attr("x1", pX).attr("y1", pY).attr("x2", pX).attr("y2", pY+40);
-
-      d3.select(".mainObjectLegend")
-        .style("display","block")
-        .style("left", (rect.x + rect.width/2) + "px")
-        .style("top", (rect.y + rect.height/2) + "px");
-    }
-    else {
-      // window.removeEventListener("click",legendClickEvent);
-      d3.selectAll('.dark-legend').remove();
-      d3.select(".mainObjectLegend")
-        .style("display","none");
-    }
-
-    legendToggle = !legendToggle;
-  };
 
   drawMainCircularShape();
   drawCircularTypeMarkers();

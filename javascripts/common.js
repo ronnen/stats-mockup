@@ -1,3 +1,7 @@
+var toRadians = function(angle) {
+  return angle * (Math.PI / 180);
+};
+
 var arcSliceFull = d3.arc()
   .startAngle(function (d) {
     return d.from;
