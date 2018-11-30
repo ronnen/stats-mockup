@@ -61,6 +61,14 @@ var getTranslation = function(transform) {
   return [matrix.e, matrix.f];
 };
 
+var countNonHidden = function(array) {
+  return array.reduce(function(count, element) {return count + (element.hidden ? 0 : 1)}, 0);
+};
+
+var filterNonHidden = function(array) {
+  return array.filter(function(element) {return !element.hidden});
+};
+
 /*
 var getRelativeXY = function(x, y, svg, element){
   var p = svg.createSVGPoint();

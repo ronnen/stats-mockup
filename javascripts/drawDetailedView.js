@@ -1,9 +1,10 @@
 var firstTimeDrawDetailedView = true;
 
-function drawDetailedView(mainObject, parentData, unitNode, runSimulation) {
+function drawDetailedView(mainObject, parentData, unitNode, drawOverviewParam) {
 
   var height = parseInt(d3.select('.svg-container').style('height'));
-  runSimulation = runSimulation || function() {};
+  var runSimulation = drawOverviewParam.runSimulation;
+  var stopSimulation = drawOverviewParam.stopSimulation;
 
   const approvalTypesStartRadius = 0.3;
   const approvalTypesEndRadius = 0.95;
@@ -17,9 +18,9 @@ function drawDetailedView(mainObject, parentData, unitNode, runSimulation) {
 
   d3.select(unitNode).raise();
 
-// compute center and radius
+  // compute center and radius
   var outerRadius = zoomInDiameterFactor/2 * height;
-  const typeMarkersGap = (approvalTypesEndRadius - approvalTypesStartRadius) / (mainObject.approvalTypes.length + 1);
+  const typeMarkersGap = (approvalTypesEndRadius - approvalTypesStartRadius) / (countNonHidden(mainObject.approvalTypes) + 1);
 
   // var mainGroup = d3.select(".main-group");
   var unitGroup = d3.select(unitNode);
@@ -31,8 +32,6 @@ function drawDetailedView(mainObject, parentData, unitNode, runSimulation) {
     .attr("class", "detailed-group")
     .on("click", handleFlowerClick)
     .on("mouseleave", approvalMouseLeave);
-
-  // .on("mouseleave", handleMouseLeave);
 
   unitGroup
     .call(d3.drag()
@@ -91,9 +90,11 @@ function drawDetailedView(mainObject, parentData, unitNode, runSimulation) {
     d3.select(".submitterTooltip")
       .style("display","none");
 
+    stopSimulation();
     window.dispatchEvent(new CustomEvent("drawOverviewByCriteria", {
       detail: {  }
     }));
+    // runSimulation(0.3);
 
   }
 
@@ -150,7 +151,7 @@ function drawDetailedView(mainObject, parentData, unitNode, runSimulation) {
     // approval type circular markers (approval labels)
 
     detailedGroup.selectAll("approval-type.path")
-      .data(mainObject.approvalTypes.map(function(value, i) {
+      .data(approvalTypes.map(function(value, i) {
         var radius = outerRadius * (approvalTypesStartRadius + (i+1)*typeMarkersGap);
         var gap = estimateAngleGapForText(radius, value.label);
         return {
@@ -174,7 +175,7 @@ function drawDetailedView(mainObject, parentData, unitNode, runSimulation) {
     // background for the label
     detailedGroup
       .selectAll("approval-type-label-background.path")
-      .data(mainObject.approvalTypes.map(function(value, i) {
+      .data(approvalTypes.map(function(value, i) {
         var radius = outerRadius * (approvalTypesStartRadius + (i+1)*typeMarkersGap);
         var gap = estimateAngleGapForText(radius, value.label);
         return {
@@ -195,7 +196,7 @@ function drawDetailedView(mainObject, parentData, unitNode, runSimulation) {
 
     detailedGroup
       .selectAll("approval-type-label.text")
-      .data(mainObject.approvalTypes)
+      .data(approvalTypes)
       .enter()
       .append("text")
       .attr("class", "approval-type-label")
@@ -212,12 +213,14 @@ function drawDetailedView(mainObject, parentData, unitNode, runSimulation) {
       });
   }
 
+  var approvalTypes = mainObject.approvalTypes.filter(function(t) {return !t.hidden});
+
   // calculate radial range based on top waitTime
-  var maxWaitTime = d3.max(mainObject.approvalTypes.map(function(v) {
+  var maxWaitTime = d3.max(approvalTypes.map(function(v) {
     return d3.max(v.approvals, function(a) {return a.waitTime})
   }));
 
-  var maxValue = d3.max(mainObject.approvalTypes.map(function(v) {
+  var maxValue = d3.max(approvalTypes.map(function(v) {
     return d3.max(v.approvals, function(a) {return a.value})
   }));
 
@@ -247,7 +250,7 @@ function drawDetailedView(mainObject, parentData, unitNode, runSimulation) {
 
     // draw average delay guideline
     var avgGuideGroup = detailedGroup.selectAll("g.average-guide")
-      .data(mainObject.approvalTypes)
+      .data(approvalTypes)
       .enter()
       .append("svg:g")
       .attr("class", "average-guide")
@@ -307,9 +310,9 @@ function drawDetailedView(mainObject, parentData, unitNode, runSimulation) {
 
 
     // first drawing guide lines
-    mainObject.approvalTypes.forEach(function (t, index) {
+    approvalTypes.forEach(function (t, index) {
       detailedGroup.selectAll("bubble-guide.line")
-        .data(t.approvals)
+        .data(filterNonHidden(t.approvals))
         .enter()
         .append("svg:line")
         .attr("class", "bubble-guide")
@@ -373,10 +376,10 @@ function drawDetailedView(mainObject, parentData, unitNode, runSimulation) {
 
     function drawBackgroundOrForeground(foreground) {
       // now drawing spheres
-      mainObject.approvalTypes.forEach(function (t, index) {
+      approvalTypes.forEach(function (t, index) {
         var className = foreground ? "sphere" : "sphere-background";
         var spheres = detailedGroup.selectAll("g." + className + index)
-          .data(t.approvals)
+          .data(filterNonHidden(t.approvals))
           .enter()
           .append("svg:g")
           .attr("class", className + index);

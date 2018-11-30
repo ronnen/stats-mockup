@@ -6,6 +6,8 @@ function drawOverview(mainUnits) {
   var width = parseInt(d3.select('.svg-container').style('width')),
       height = parseInt(d3.select('.svg-container').style('height'));
 
+  mainUnits = mainUnits.filter(function(unit) {return !unit.hidden});
+
   const maxDiameter = 0.65 * height;
   const diameter = Math.min(width / (mainUnits.length), maxDiameter); // diameter of closed state
   const outerRadius = diameter/2;
@@ -72,16 +74,11 @@ function drawOverview(mainUnits) {
     .attr("height", height)
     .on("click", function() {
       // console.log("svg-container clicked");
-      if (closeOpenFlowers()) {
-        window.dispatchEvent(new CustomEvent("drawOverviewByCriteria", {
-          detail: {  }
-        }));
-/*
+      d3.event.stopPropagation();
 
-        simulation
-          .nodes(mainUnits)
-          .alphaTarget(0.3).restart();
-*/
+      if (closeOpenFlowers()) {
+        simulation.stop();
+        window.dispatchEvent(new CustomEvent("drawOverviewByCriteria", { detail: { }}));
       }
     });
 
@@ -92,6 +89,7 @@ function drawOverview(mainUnits) {
   const forceX = d3.forceX(width / 2).strength(0.015)
   const forceY = d3.forceY(height / 2).strength(0.015)
 
+  console.log("simulation forceSimulation with mainUnits")
   // reference: https://d3indepth.com/force-layout/
   var simulation = d3.forceSimulation(mainUnits)
     .alphaDecay(0.03)
@@ -99,7 +97,13 @@ function drawOverview(mainUnits) {
     // .force('charge', d3.forceManyBody().strength(800))
     .force("x", forceX)
     .force("y", forceY)
-    .force('collision', d3.forceCollide().radius(function(d) {
+    .force('collision', d3.forceCollide().radius(function(d, index) {
+/*
+      if (d.selected) {
+        console.log("radius of 0 " + ((d.selected ? blownUpRadius : outerRadius) + 10) + " " + d.department);
+      }
+*/
+      console.log("index " + index + " radius " + (d.selected ? blownUpRadius : outerRadius) + " " + d.department);
       return (d.selected ? blownUpRadius : outerRadius) + 10; // d.radius
     }).iterations(5))
     .on('tick', ticked);
@@ -114,7 +118,9 @@ function drawOverview(mainUnits) {
   }
 
   var unitGroupsBase = mainGroup.selectAll("g.main-units")
-    .data(mainUnits, function(d) {return d.department});
+    .data(mainUnits.filter(function(d) {
+      return !d.hidden
+    }), function(d) {return d.department});
 
   var unitGroups = unitGroupsBase
     .enter()
@@ -208,20 +214,22 @@ function drawOverview(mainUnits) {
   var approverGroups = unitGroups
     .selectAll("g.approver-group")
     .data(function(d) {
-      var maxApproverValueInUnit = d3.max(d.approvers, function(a) {return a.approverTotalValue});
-      d.spreadRadius = d.approvers.length <= 1 ? 0 :
+      var approvers = d.approvers.filter(function(approver) {return !approver.hidden});
+      var maxApproverValueInUnit = d3.max(approvers, function(a) {return a.approverTotalValue});
+      d.spreadRadius = approvers.length <= 1 ? 0 :
         (d.approvers.length == 2 ?
           minApproverBubbleRatio * outerRadius :
             Math.max(approverBubbleRadius(maxApproverValueInUnit), minApproverBubbleRatio * outerRadius)
         );
-      return d.approvers;
+      return approvers;
     })
     .enter()
     .append("svg:g")
     .attr("class", "approver-group")
     .attr("transform", function (d, index) {
       var parentData = d3.select(this.parentNode).datum();
-      var totalBubbles = parentData.approvers.length;
+      // var totalBubbles = parentData.approvers.length;
+      var totalBubbles = countNonHidden(parentData.approvers);
       var degOffset = index * 360 / totalBubbles - 30;
       var y = -Math.cos(toRadians(degOffset)) * parentData.spreadRadius;
       var x = Math.sin(toRadians(degOffset)) * parentData.spreadRadius;
@@ -266,12 +274,16 @@ function drawOverview(mainUnits) {
 
   function closeOpenFlowers() {
     // there's supposed to be only one really
-    console.log("main unit clicked");
     var any = d3.selectAll(".main-units.selected .detailed-group").nodes().length;
     if (any) {
       d3.selectAll(".main-units.selected .detailed-group").remove();
       d3.select(".main-units.selected").on('mousedown.drag', null);
       d3.selectAll(".main-units").classed("selected", false).each(function(d) {
+        if (d.selected) {
+          d.approvers.forEach(function(approver) {
+            approver.selected = false;
+          })
+        }
         d.selected = false;
         d.fx = null;
         d.fy = null;
@@ -293,21 +305,17 @@ function drawOverview(mainUnits) {
     var parentData = d3.select(this.parentNode.parentNode).datum();
     parentData.selected = true; // department marked as selected
     d.selected = true; // approver marked as selected
+    simulation.stop();
     window.dispatchEvent(new CustomEvent("drawOverviewByCriteria", { detail : {} }));
-    runSimulation(0.3);
-/*
-    var parentData = d3.select(this.parentNode.parentNode).datum();
-    parentData.selected = true; // department marked as selected
-    drawDetailedView(d, parentData, this.parentNode.parentNode, runSimulation);
-    runSimulation(0.3);
-*/
 
-    function runSimulation(alphaTarget) {
-      alphaTarget = alphaTarget != null ? alphaTarget : 0.3;
-      simulation
-        .nodes(mainUnits)
-        .alphaTarget(alphaTarget).restart();
-    }
   }
 
+  function runSimulation(alphaTarget) {
+    alphaTarget = alphaTarget != null ? alphaTarget : 0.3;
+    simulation
+      .nodes(mainUnits)
+      .alphaTarget(alphaTarget).restart();
+  }
+
+  return {stopSimulation: simulation.stop, runSimulation: runSimulation};
 }

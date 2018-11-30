@@ -154,13 +154,14 @@ function drawMenu(criteria) {
       filteredData = filterApproverDataByCriteria(selectedApprover, criteria);
       filteredData.selected = true;
 
+      var drawOverviewParams = drawOverview(mainUnits);
       var unitGroup = d3.select(".main-units.selected");
       var parentData = unitGroup.datum();
-      drawDetailedView(filteredData, parentData, unitGroup.nodes()[0]);
+      drawDetailedView(filteredData, parentData, unitGroup.nodes()[0], drawOverviewParams);
     }
     else {
       // update the whole thing
-      filteredData = filterDataByCriteria(mainUnits, criteria);
+      filteredData = filterDataByCriteria(/*mainUnits,*/ criteria);
 
       mainUnits.forEach(function(unit) {
         delete unit.fx;

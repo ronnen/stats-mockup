@@ -185,81 +185,62 @@ function calculateTotalValues(originalData) {
 
 calculateTotalValues(mainUnits);
 
-function filterDataByCriteria(originalData, criteria) {
+function filterDataByCriteria(/*originalData,*/ criteria) {
   // criteria {totalValueMin, totalValueMax, waitTimeMin, waitTimeMax, typesFilter}
-  var filteredMainUnits = JSON.parse(JSON.stringify(originalData));
 
-  filteredMainUnits.forEach(function(unit) {
-    unit.approvers.forEach(function(approver) {
-      approver.approvalTypes = approver.approvalTypes.filter(function(t) {
-        return criteria.typesFilter.indexOf(t.label) >= 0;
-      });
-    })
-  });
-
-  if (criteria.totalValueMin !== null) {
-    filteredMainUnits = filteredMainUnits.filter(function (o) {
-      return o.approvers.some(function(approver) {
-        return criteria.totalValueMin == null || (approver.approverTotalValue >= criteria.totalValueMin && approver.approverTotalValue <= criteria.totalValueMax);
-      });
-    });
-
-    filteredMainUnits.forEach(function(unit) {
-      unit.approvers = unit.approvers.filter(function(approver) {
-        return criteria.totalValueMin == null || (approver.approverTotalValue >= criteria.totalValueMin && approver.approverTotalValue <= criteria.totalValueMax);
-      });
-    });
-  }
-
+  // hide approvals that are outside wait time range
   if (criteria.waitTimeMin !== null) {
-    filteredMainUnits.forEach(function(unit) {
+    mainUnits.forEach(function(unit) {
       unit.approvers.forEach(function(approver) {
         approver.approvalTypes.forEach(function(approvalType) {
-          approvalType.approvals = approvalType.approvals.filter(function(approval) {
-            return criteria.waitTimeMin == null || (approval.waitTime >= criteria.waitTimeMin && approval.waitTime <= criteria.waitTimeMax);
+          approvalType.approvals.forEach(function(approval) {
+            approval.hidden = !(criteria.waitTimeMin == null || (approval.waitTime >= criteria.waitTimeMin && approval.waitTime <= criteria.waitTimeMax));
           })
         })
       })
     });
-
   }
 
-  filteredMainUnits.forEach(function(unit) {
+  // hide irrelevant approvals types
+  mainUnits.forEach(function(unit) {
     unit.approvers.forEach(function(approver) {
-      approver.approvalTypes = approver.approvalTypes.filter(function(approvalType) {
-        return approvalType.approvals.length > 0;
-      })
+      approver.approvalTypes.forEach(function(t) {
+        t.hidden = !(criteria.typesFilter.indexOf(t.label) >= 0) ||
+          t.approvals.every(function(approval) {return approval.hidden});
+      });
     })
   });
 
-  filteredMainUnits.forEach(function(unit) {
-    unit.approvers = unit.approvers.filter(function(approver) {
-      return approver.approvalTypes.length > 0;
-    });
+  // hide irrelevant approvers based on total value
+  if (criteria.totalValueMin !== null) {
+    mainUnits.forEach(function (unit) {
+      unit.approvers.forEach(function(approver) {
+        var validValue = criteria.totalValueMin == null || (approver.approverTotalValue >= criteria.totalValueMin && approver.approverTotalValue <= criteria.totalValueMax);
+        var noValidApprovalTypes = approver.approvalTypes.every(function(t) {return t.hidden});
+        approver.hidden = !validValue || noValidApprovalTypes;
+      });
+    })
+  }
+
+  // hide irrelevant units
+  mainUnits.forEach(function (unit) {
+    unit.hidden = unit.approvers.every(function(approver) {return approver.hidden});
   });
 
-  filteredMainUnits = filteredMainUnits.filter(function(unit) {
-    return unit.approvers.length > 0;
-  });
-
-  return filteredMainUnits;
+  return mainUnits;
 }
 
-function filterApproverDataByCriteria(originalData, criteria) {
-  var approver = JSON.parse(JSON.stringify(originalData));
-
-  approver.approvalTypes = approver.approvalTypes.filter(function(t) {
-    return criteria.typesFilter.indexOf(t.label) >= 0;
-  });
+function filterApproverDataByCriteria(approver, criteria) {
 
   approver.approvalTypes.forEach(function(approvalType) {
-    approvalType.approvals = approvalType.approvals.filter(function(approval) {
-      return criteria.waitTimeMin == null || (approval.waitTime >= criteria.waitTimeMin && approval.waitTime <= criteria.waitTimeMax);
+    approvalType.approvals.forEach(function(approval) {
+      approval.hidden = !(criteria.waitTimeMin == null || (approval.waitTime >= criteria.waitTimeMin && approval.waitTime <= criteria.waitTimeMax));
     })
   });
 
-  approver.approvalTypes = approver.approvalTypes.filter(function(approvalType) {
-    return approvalType.approvals.length > 0;
+  approver.approvalTypes.forEach(function(t) {
+    t.hidden = !(criteria.typesFilter.indexOf(t.label) >= 0) ||
+      t.approvals.every(function(approval) {return approval.hidden});
   });
 
   return approver;
