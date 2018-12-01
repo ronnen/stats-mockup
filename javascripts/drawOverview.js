@@ -98,14 +98,9 @@ function drawOverview(mainUnits) {
     .force("x", forceX)
     .force("y", forceY)
     .force('collision', d3.forceCollide().radius(function(d, index) {
-/*
-      if (d.selected) {
-        console.log("radius of 0 " + ((d.selected ? blownUpRadius : outerRadius) + 10) + " " + d.department);
-      }
-*/
       console.log("index " + index + " radius " + (d.selected ? blownUpRadius : outerRadius) + " " + d.department);
       return (d.selected ? blownUpRadius : outerRadius) + 10; // d.radius
-    }).iterations(5))
+    }))
     .on('tick', ticked);
 
   function ticked() {
@@ -205,35 +200,59 @@ function drawOverview(mainUnits) {
       return d.department;
     });
 
-  // add approver bubbles inside units
-
   var approverBubbleRadius = d3.scaleLinear()
     .domain([0, maxValue])
-    .range([0, maxApproverBubbleRatio * outerRadius]);  // corresponds to 4 color segments
+    .range([0, maxApproverBubbleRatio * outerRadius]);
+
+  unitGroups.each(function(d) {
+    var approvers = d.approvers.filter(function(approver) {return !approver.hidden});
+    var staticSimulation = d3.forceSimulation(approvers)
+      .velocityDecay(0.1)
+      .force("x", d3.forceX(0).strength(.05))
+      .force("y", d3.forceY(0).strength(.05))
+      .force("charge", d3.forceManyBody().strength(-240))
+      .stop();
+
+    for (var i = 0, n = Math.ceil(Math.log(staticSimulation.alphaMin()) / Math.log(1 - staticSimulation.alphaDecay())); i < n; ++i) {
+      staticSimulation.tick();
+    }
+
+    // make sure all approvers are in unit circle (outerRadius - identityMargin)
+    var radius = outerRadius - identityMargin - 5;
+    for (var j = 0; j<approvers.length; j++) {
+      var approver = approvers[j];
+      var approverRadius = Math.max(approverBubbleRadius(approvers[j].approverTotalValue), minApproverBubbleRatio * outerRadius);
+      var sqrSum = (Math.pow((approver.x), 2) + Math.pow((approver.y), 2));
+      var sqrSumLimit = Math.pow(radius-approverRadius,2);
+      if (sqrSum > sqrSumLimit) {
+        var ratio = (radius-approverRadius) / (Math.sqrt(sqrSum) || 1);
+        approver.x = approver.x * ratio;
+        approver.y = approver.y * ratio;
+      }
+    }
+
+  });
+
+  // add approver bubbles inside units
 
   var approverGroups = unitGroups
     .selectAll("g.approver-group")
     .data(function(d) {
       var approvers = d.approvers.filter(function(approver) {return !approver.hidden});
-      var maxApproverValueInUnit = d3.max(approvers, function(a) {return a.approverTotalValue});
-      d.spreadRadius = approvers.length <= 1 ? 0 :
-        (d.approvers.length == 2 ?
-          minApproverBubbleRatio * outerRadius :
-            Math.max(approverBubbleRadius(maxApproverValueInUnit), minApproverBubbleRatio * outerRadius)
-        );
       return approvers;
     })
     .enter()
     .append("svg:g")
     .attr("class", "approver-group")
     .attr("transform", function (d, index) {
+/*
       var parentData = d3.select(this.parentNode).datum();
-      // var totalBubbles = parentData.approvers.length;
       var totalBubbles = countNonHidden(parentData.approvers);
       var degOffset = index * 360 / totalBubbles - 30;
       var y = -Math.cos(toRadians(degOffset)) * parentData.spreadRadius;
       var x = Math.sin(toRadians(degOffset)) * parentData.spreadRadius;
-      return "translate(" + x + "," + y + ")";
+*/
+      return "translate(" + d.x + "," + d.y + ")";
     })
     .on("mouseenter", function(d) {
       d3.select(this).classed("highlight", true);

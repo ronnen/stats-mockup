@@ -1,10 +1,10 @@
 
 var mainUnits = [
   {
-    department: "R&D Dept. 54 employees 18 approvals",
+    department: "Customer Success Dept. 34 employees 21 approvals",
     approvers: [
       {
-        approverName: "Billie Hollins",
+        approverName: "Sam Katwan",
         approverTotalValue: 0,
         approvalTypes: [
           {
@@ -16,36 +16,46 @@ var mainUnits = [
               {waitTime: 20, value: 32000, submitter: "Chelsia Hu"},
               {waitTime: 43, value: 64000, submitter: "Ning Hou"},
               {waitTime: 80, value: 64000, submitter: "Ning Hou"},
-              {waitTime: 92, value: 320000, submitter: "Steve Caper, Jr."},
-              {waitTime: 130, value: 8000, submitter: "Jeremy Lambeth"},
+              {waitTime: 450, value: 64000, submitter: "Ning Hou"},
+            ],
+          },
+        ],
+      },
+      {
+        approverName: "Sammy Davis",
+        approverTotalValue: 0,
+        approvalTypes: [
+          {
+            label: "Purchase Orders",
+            average: 240,
+            averageLabel: "9.5 Days",
+            approvals: [
+              {waitTime: 10, value: 64000, submitter: "Ning Hou"},
+              {waitTime: 20, value: 32000, submitter: "Chelsia Hu"},
+              {waitTime: 43, value: 64000, submitter: "Ning Hou"},
               {waitTime: 180, value: 120000, submitter: "Rick Smith"},
               {waitTime: 280, value: 320000, submitter: "Steve Caper, Jr."},
               {waitTime: 450, value: 64000, submitter: "Ning Hou"},
             ],
           },
+        ],
+      },
+      {
+        approverName: "Bobby McGee",
+        approverTotalValue: 0,
+        approvalTypes: [
           {
-            label: "Expenses",
-            average: 200,
-            averageLabel: "5.2 Days",
+            label: "Purchase Orders",
+            average: 240,
+            averageLabel: "9.5 Days",
             approvals: [
-              {waitTime: 15, value: 64000, submitter: "Ning Hou"},
-              {waitTime: 33, value: 32000, submitter: "Chelsia Hu"},
-              {waitTime: 50, value: 64000, submitter: "Ning Hou"},
-              {waitTime: 80, value: 64000, submitter: "Ning Hou"},
-              {waitTime: 120, value: 320000, submitter: "Steve Caper, Jr."},
-              {waitTime: 160, value: 8000, submitter: "Jeremy Lambeth"},
-              {waitTime: 340, value: 120000, submitter: "Rick Smith"},
-              {waitTime: 400, value: 320000, submitter: "Steve Caper, Jr."},
-              {waitTime: 520, value: 64000, submitter: "Ning Hou"},
+              {waitTime: 130, value: 8000, submitter: "Jeremy Lambeth"},
+              {waitTime: 180, value: 120000, submitter: "Rick Smith"},
+              {waitTime: 280, value: 320000, submitter: "Steve Caper, Jr."},
             ],
           },
         ],
-      }
-    ],
-  },
-  {
-    department: "Customer Success Dept. 34 employees 21 approvals",
-    approvers: [
+      },
       {
         approverName: "Sam Abbasi",
         approverTotalValue: 0,
@@ -106,6 +116,49 @@ var mainUnits = [
           },
         ],
       },
+    ],
+  },
+  {
+    department: "R&D Dept. 54 employees 18 approvals",
+    approvers: [
+      {
+        approverName: "Billie Hollins",
+        approverTotalValue: 0,
+        approvalTypes: [
+          {
+            label: "Purchase Orders",
+            average: 240,
+            averageLabel: "9.5 Days",
+            approvals: [
+              {waitTime: 10, value: 64000, submitter: "Ning Hou"},
+              {waitTime: 20, value: 32000, submitter: "Chelsia Hu"},
+              {waitTime: 43, value: 64000, submitter: "Ning Hou"},
+              {waitTime: 80, value: 64000, submitter: "Ning Hou"},
+              {waitTime: 92, value: 320000, submitter: "Steve Caper, Jr."},
+              {waitTime: 130, value: 8000, submitter: "Jeremy Lambeth"},
+              {waitTime: 180, value: 120000, submitter: "Rick Smith"},
+              {waitTime: 280, value: 320000, submitter: "Steve Caper, Jr."},
+              {waitTime: 450, value: 64000, submitter: "Ning Hou"},
+            ],
+          },
+          {
+            label: "Expenses",
+            average: 200,
+            averageLabel: "5.2 Days",
+            approvals: [
+              {waitTime: 15, value: 64000, submitter: "Ning Hou"},
+              {waitTime: 33, value: 32000, submitter: "Chelsia Hu"},
+              {waitTime: 50, value: 64000, submitter: "Ning Hou"},
+              {waitTime: 80, value: 64000, submitter: "Ning Hou"},
+              {waitTime: 120, value: 320000, submitter: "Steve Caper, Jr."},
+              {waitTime: 160, value: 8000, submitter: "Jeremy Lambeth"},
+              {waitTime: 340, value: 120000, submitter: "Rick Smith"},
+              {waitTime: 400, value: 320000, submitter: "Steve Caper, Jr."},
+              {waitTime: 520, value: 64000, submitter: "Ning Hou"},
+            ],
+          },
+        ],
+      }
     ],
   },
   {
