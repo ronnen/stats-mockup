@@ -10,25 +10,27 @@
 <script src="javascripts/vendor/d3-ease.v1.min.js"></script>
 <script src="javascripts/vendor/d3-transform.js"></script>
 <script src="javascripts/vendor/d3RangeSlider.js"></script>
+<script src="javascripts/vendor/ace.js" type="text/javascript" charset="utf-8"></script>
 <script src="javascripts/data.js"></script>
 <script src="javascripts/common.js"></script>
 <script src="javascripts/drawOverview.js"></script>
 <script src="javascripts/drawDetailedView.js"></script>
 <script src="javascripts/menu.js"></script>
+<script src="javascripts/editData.js"></script>
 <script>
 
     document.addEventListener("DOMContentLoaded", function(e) {
         drawOverview(mainUnits);
-        // drawMenu({});
-        // drawDetailedView(mainUnits[0].approvers[0], mainUnits[0].department);
     });
 
 
 </script>
+<body>
 <div class="svg-container"></div>
 <div class="menu-right">
-    <div class="legend-container">
+    <div class="actions-container">
         <div class="legend-button">Legend</div>
+        <div class="load-data">Load Data</div>
     </div>
     <div id="custom-filter" class="custom-filter">
         <div class="custom-filter-container">
@@ -49,9 +51,9 @@
             <div class="label-right">END DATE</div>
         </div>
     </div>
-    <div id="total-value-filter" class="stats-filter on">
+    <div id="amount-filter" class="stats-filter on">
         <div class="filter-header">
-            <div class="stats-filter-title">Total value</div>
+            <div class="stats-filter-title">Amount</div>
             <div class="switch-container">
                 <div class="switch-handle"></div>
             </div>
@@ -76,12 +78,13 @@
         </div>
     </div>
     <div id="approval-type-switches">
-        <div class="type-filter on">
-            <div class="stats-filter-title">Placeholder</div>
-            <div class="switch-container">
-                <div class="switch-handle"></div>
-            </div>
-        </div>
+    </div>
+</div>
+
+<div id="type-filter-template" class="type-filter on">
+    <div class="stats-filter-title">Placeholder</div>
+    <div class="switch-container">
+        <div class="switch-handle"></div>
     </div>
 </div>
 
@@ -104,6 +107,18 @@
         <div class="submitter-name"></div>
         <div class="wait-time"></div>
         <div class="misc">Prompt</div>
+    </div>
+</div>
+
+<div class="shield"></div>
+
+<div class="loadDataDialog">
+    <div class="dialog-wrapper">
+        <div id="editor" class="editor"></div>
+        <div class="editor-actions">
+            <div class="cancel-edit">Cancel</div>
+            <div class="load-edit">Load</div>
+        </div>
     </div>
 </div>
 </body>

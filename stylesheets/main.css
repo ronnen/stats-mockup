@@ -214,6 +214,10 @@ body {
     box-shadow: 0 2px #444444;
 }
 
+#type-filter-template {
+    display: none;
+}
+
 .type-filter {
     height: 20px;
     margin-left: 30px;
@@ -330,15 +334,18 @@ body {
     background: none;
 }
 
-.legend-container {
+.actions-container {
     margin-top: 22px;
     display: flex;
     height: 60px;
     justify-content: center;
     align-items: center;
+    padding-left: 30px;
+    padding-right: 30px;
+
 }
 
-.legend-button {
+.legend-button, .load-data {
     font-family: Verdana, sans-serif;
     font-size: 12px;
     border-radius: 3px;
@@ -346,8 +353,6 @@ body {
     color: #ffffff;
     text-align: center;
     flex: 1;
-    margin-left: 30px;
-    margin-right: 30px;
     height: 28px;
     padding-left: 10px;
     padding-right: 10px;
@@ -355,6 +360,10 @@ body {
     align-items: center;
     justify-content: center;
     cursor: pointer;
+}
+
+.legend-button {
+    margin-right: 10px;
 }
 
 #custom-filter {
@@ -439,4 +448,81 @@ body {
 .main-units.active {
     stroke: black;
     stroke-width: 2px;
+}
+
+.shield {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.5;
+    background-color: #444444;
+    display: none;
+}
+
+.shield.on {
+    display: block;
+}
+
+.loadDataDialog {
+    position:fixed;
+    left:50%;
+    top: 50%;
+    width: 80%;
+    height: 90%;
+    display: none;
+}
+
+.loadDataDialog.on {
+    display: flex;
+}
+
+.dialog-wrapper {
+    position:relative;
+    left:-50%;
+    top: -50%;
+    flex: 1;
+    border: 1px solid #888888;
+    border-radius: 4px;
+    background-color: rgb(74,77,93);
+    display: flex;
+    flex-direction: column;
+}
+
+.editor {
+    flex: 1;
+}
+
+.editor-actions {
+    height: 44px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-top: 1px solid #888888;
+}
+
+.cancel-edit, .load-edit {
+    font-family: Verdana, sans-serif;
+    font-size: 12px;
+    border-radius: 3px;
+    background-color: rgb(54,58,75);
+    color: #ffffff;
+    text-align: center;
+    height: 28px;
+    padding-left: 10px;
+    padding-right: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
+.all-data-hidden {
+    font-size: 50px;
+    stroke: #888888;
+    fill: transparent;
+    font-family: Verdana, sans-serif;
 }

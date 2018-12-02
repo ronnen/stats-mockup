@@ -19,7 +19,7 @@ function drawDetailedView(mainObject, parentData, unitNode, drawOverviewParam) {
   d3.select(unitNode).raise();
 
   // compute center and radius
-  var outerRadius = zoomInDiameterFactor/2 * height;
+  var outerRadius = Math.max(parentData.outerRadius, zoomInDiameterFactor/2 * height);
   const typeMarkersGap = (approvalTypesEndRadius - approvalTypesStartRadius) / (countNonHidden(mainObject.approvalTypes) + 1);
 
   // var mainGroup = d3.select(".main-group");
@@ -106,7 +106,7 @@ function drawDetailedView(mainObject, parentData, unitNode, drawOverviewParam) {
     }
 
     // outer identity marker (which department and employee count)
-    var gap = estimateAngleGapForText(outerRadius - identityMargin, parentData.department);
+    var gap = estimateAngleGapForText(outerRadius - identityMargin, parentData.unitLabel);
 
     detailedGroup.selectAll("identity.path")
       .data([{
@@ -146,7 +146,7 @@ function drawDetailedView(mainObject, parentData, unitNode, drawOverviewParam) {
       .attr("xlink:href", "#objectIdentityPath") //place the ID of the path here
       .style("text-anchor","middle") //place the text halfway on the arc
       .attr("startOffset", "24%")
-      .text(parentData.department);
+      .text(parentData.unitLabel);
 
     // approval type circular markers (approval labels)
 

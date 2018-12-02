@@ -1,21 +1,32 @@
-var firstTimeDrawOverview = true;
+var freshDataLoaded = true; // being set every time fresh data is loaded
 const zoomInDiameterFactor = 0.65;
 
 function drawOverview(mainUnits) {
+  if (freshDataLoaded) {
+    calculateTotalValues(mainUnits);
+  }
 
   var width = parseInt(d3.select('.svg-container').style('width')),
       height = parseInt(d3.select('.svg-container').style('height'));
 
-  mainUnits = mainUnits.filter(function(unit) {return !unit.hidden});
+  mainUnits = filterNonHidden(mainUnits);
 
-  const maxDiameter = 0.65 * height;
-  const diameter = Math.min(width / (mainUnits.length), maxDiameter); // diameter of closed state
-  const outerRadius = diameter/2;
+  // const maxDiameter = 0.65 * height;
+  // const diameter = Math.min(width / (mainUnits.length), maxDiameter); // diameter of closed state
+  // const outerRadius = diameter/2;
   const blownUpRadius = zoomInDiameterFactor/2 * height; // corresponds to radius in drawDetailedView
   const minApproverBubbleRatio = 0.3;
   const maxApproverBubbleRatio = 0.6;
   const identityMargin = 20;
-  var svg, mainGroup, maxValue, minWait, maxWait;
+  var svg, mainGroup, maxValue, minWait, maxWait, minAmount, maxAmount;
+
+  // calculate appropriate factor for outerRadius
+  var sumOfTotalValue = d3.sum(mainUnits, function(d) {return d.unitTotalValue});
+  var outerRadiusFactor = width*height*0.7 / (sumOfTotalValue || 1); // measure how much space per unit given screen size
+
+  mainUnits.forEach(function(d) {
+    d.outerRadius = Math.sqrt(d.unitTotalValue * outerRadiusFactor / Math.PI);
+  });
 
   maxValue = d3.max(mainUnits.map(function(v) {
     return d3.max(v.approvers, function(a) {return a.approverTotalValue})
@@ -41,6 +52,26 @@ function drawOverview(mainUnits) {
     })
   }));
 
+  maxAmount = d3.max(mainUnits.map(function(v) {
+    return d3.max(v.approvers, function(approver) {
+      return d3.max(approver.approvalTypes, function(approvalType) {
+        return d3.max(approvalType.approvals, function(approval) {
+          return approval.value;
+        })
+      })
+    })
+  }));
+
+  minAmount = d3.min(mainUnits.map(function(v) {
+    return d3.min(v.approvers, function(approver) {
+      return d3.min(approver.approvalTypes, function(approvalType) {
+        return d3.min(approvalType.approvals, function(approval) {
+          return approval.value;
+        })
+      })
+    })
+  }));
+
   // collect approval type
   var approvalTypeLabels = {};
   mainUnits.forEach(function(unit) {
@@ -52,7 +83,7 @@ function drawOverview(mainUnits) {
   });
   approvalTypeLabels = Object.keys(approvalTypeLabels);
 
-  if (firstTimeDrawOverview) {
+  if (freshDataLoaded) {
     console.log("max approver value " + maxValue);
 
     drawMenu({
@@ -60,10 +91,12 @@ function drawOverview(mainUnits) {
       totalValueMax: maxValue,
       waitTimeMin: minWait,
       waitTimeMax: maxWait,
+      amountMin: minAmount,
+      amountMax: maxAmount,
       approvalTypes: approvalTypeLabels
     });
 
-    firstTimeDrawOverview = false;
+    freshDataLoaded = false;
 
   }
 
@@ -73,7 +106,7 @@ function drawOverview(mainUnits) {
     .attr("width", width)
     .attr("height", height)
     .on("click", function() {
-      // console.log("svg-container clicked");
+      console.log("svg-container clicked");
       d3.event.stopPropagation();
 
       if (closeOpenFlowers()) {
@@ -86,10 +119,19 @@ function drawOverview(mainUnits) {
     .attr("transform", "translate(" + (width / 2) + "," + (height / 2) + ")")
     .attr("class","main-group");
 
-  const forceX = d3.forceX(width / 2).strength(0.015)
-  const forceY = d3.forceY(height / 2).strength(0.015)
+  const forceX = d3.forceX(width / 2).strength(0.015);
+  const forceY = d3.forceY(height / 2).strength(0.015);
 
-  console.log("simulation forceSimulation with mainUnits")
+  if (mainUnits.length <= 0) {
+    mainGroup
+      .append("text")
+      .attr("class", "all-data-hidden")
+      .attr("text-anchor", "middle")
+      .text("No data match your criteria");
+    return;
+  }
+
+  // console.log("simulation forceSimulation with mainUnits")
   // reference: https://d3indepth.com/force-layout/
   var simulation = d3.forceSimulation(mainUnits)
     .alphaDecay(0.03)
@@ -98,8 +140,8 @@ function drawOverview(mainUnits) {
     .force("x", forceX)
     .force("y", forceY)
     .force('collision', d3.forceCollide().radius(function(d, index) {
-      console.log("index " + index + " radius " + (d.selected ? blownUpRadius : outerRadius) + " " + d.department);
-      return (d.selected ? blownUpRadius : outerRadius) + 10; // d.radius
+      // console.log("index " + index + " radius " + (d.selected ? blownUpRadius : outerRadius) + " " + d.unitLabel);
+      return (d.selected ? blownUpRadius : d.outerRadius) + 10; // d.radius
     }))
     .on('tick', ticked);
 
@@ -115,7 +157,7 @@ function drawOverview(mainUnits) {
   var unitGroupsBase = mainGroup.selectAll("g.main-units")
     .data(mainUnits.filter(function(d) {
       return !d.hidden
-    }), function(d) {return d.department});
+    }), function(d) {return d.unitLabel});
 
   var unitGroups = unitGroupsBase
     .enter()
@@ -135,11 +177,42 @@ function drawOverview(mainUnits) {
       var x = d.x - (width/2);
       // console.log("main-unit translate " + "translate(" + x + "," + y + ")");
       return "translate(" + x + "," + y + ")";
+    })
+    .call(d3.drag()
+      .on("start", dragstarted)
+      .on("drag", dragged)
+      .on("end", dragended));
+
+  function dragstarted(d) {
+    // release all other nodes
+    mainUnits.forEach(function(unit) {
+      delete unit.fx;
+      delete unit.fy;
     });
+
+    d3.select(this).classed("active", true);
+    if (!d3.event.active) runSimulation(0.3); // simulation.alphaTarget(0.3).restart();
+    d.fx = d.x;
+    d.fy = d.y;
+
+  }
+
+  function dragged(d) {
+    d.fx = d3.event.x;
+    d.fy = d3.event.y;
+  }
+
+  function dragended(d) {
+    d3.select(this).classed("active", false);
+    // these lines commented out to fix node
+    if (!d3.event.active) runSimulation(0); // simulation.alphaTarget(0);
+    d.fx = null;
+    d.fy = null;
+  }
 
   unitGroups
     .append("circle")
-    .attr("r", outerRadius)
+    .attr("r", function(d) {return d.outerRadius})
     .attr("class", "closed-sphere-background");
 
   unitGroupsBase.exit().remove();
@@ -152,11 +225,13 @@ function drawOverview(mainUnits) {
 
   // outer identity marker (which department and employee count)
 
+/*
   const fullCircle = {
     radius: outerRadius - identityMargin,
     from: 0,
     to: 2*Math.PI
   };
+*/
 
   unitGroups // might need to change class name
     .append("svg:path")
@@ -166,7 +241,11 @@ function drawOverview(mainUnits) {
       return 1;
     })
     .attr("stroke-linejoin", "round")
-    .attr("d", function(d) {return arcSliceFull(fullCircle);});
+    .attr("d", function(d) {return arcSliceFull({
+      radius: d.outerRadius - identityMargin,
+      from: 0,
+      to: 2*Math.PI
+    });});
 
   // background for the label
   unitGroups
@@ -178,9 +257,9 @@ function drawOverview(mainUnits) {
     .attr("fill", "transparent")
     .attr("stroke-width", 1)
     .attr("d", function(d) {
-      var gap = estimateAngleGapForText(outerRadius - identityMargin, d.department);
+      var gap = estimateAngleGapForText(d.outerRadius - identityMargin, d.unitLabel);
       return arcSliceFull({
-        radius: outerRadius - identityMargin,
+        radius: d.outerRadius - identityMargin,
         to: toRadians(120) + gap/2,
         from: toRadians(120) - gap/2
       })
@@ -197,20 +276,28 @@ function drawOverview(mainUnits) {
     .style("text-anchor","middle") //place the text halfway on the arc
     .attr("startOffset", "76%")
     .text(function(d) {
-      return d.department;
+      return d.unitLabel;
     });
 
-  var approverBubbleRadius = d3.scaleLinear()
-    .domain([0, maxValue])
-    .range([0, maxApproverBubbleRatio * outerRadius]);
+  function approverBubbleRadiusGenerator(d) {
+    return d3.scaleLinear()
+      .domain([0, maxValue])
+      .range([0, maxApproverBubbleRatio * d.outerRadius]);
+  }
 
   unitGroups.each(function(d) {
+/*
+    var approverBubbleRadius = d3.scaleLinear()
+      .domain([0, maxValue])
+      .range([0, maxApproverBubbleRatio * d.outerRadius]);
+*/
+
     var approvers = d.approvers.filter(function(approver) {return !approver.hidden});
     var staticSimulation = d3.forceSimulation(approvers)
       .velocityDecay(0.1)
       .force("x", d3.forceX(0).strength(.05))
       .force("y", d3.forceY(0).strength(.05))
-      .force("charge", d3.forceManyBody().strength(-240))
+      .force("charge", d3.forceManyBody().strength(-300))
       .stop();
 
     for (var i = 0, n = Math.ceil(Math.log(staticSimulation.alphaMin()) / Math.log(1 - staticSimulation.alphaDecay())); i < n; ++i) {
@@ -218,10 +305,12 @@ function drawOverview(mainUnits) {
     }
 
     // make sure all approvers are in unit circle (outerRadius - identityMargin)
-    var radius = outerRadius - identityMargin - 5;
+    var radius = d.outerRadius - identityMargin - 5;
+    var approverBubbleRadius = approverBubbleRadiusGenerator(d);
+
     for (var j = 0; j<approvers.length; j++) {
       var approver = approvers[j];
-      var approverRadius = Math.max(approverBubbleRadius(approvers[j].approverTotalValue), minApproverBubbleRatio * outerRadius);
+      var approverRadius = Math.max(approverBubbleRadius(approvers[j].approverTotalValue), minApproverBubbleRatio * d.outerRadius);
       var sqrSum = (Math.pow((approver.x), 2) + Math.pow((approver.y), 2));
       var sqrSumLimit = Math.pow(radius-approverRadius,2);
       if (sqrSum > sqrSumLimit) {
@@ -238,20 +327,12 @@ function drawOverview(mainUnits) {
   var approverGroups = unitGroups
     .selectAll("g.approver-group")
     .data(function(d) {
-      var approvers = d.approvers.filter(function(approver) {return !approver.hidden});
-      return approvers;
+      return d.approvers.filter(function(approver) {return !approver.hidden});
     })
     .enter()
     .append("svg:g")
     .attr("class", "approver-group")
     .attr("transform", function (d, index) {
-/*
-      var parentData = d3.select(this.parentNode).datum();
-      var totalBubbles = countNonHidden(parentData.approvers);
-      var degOffset = index * 360 / totalBubbles - 30;
-      var y = -Math.cos(toRadians(degOffset)) * parentData.spreadRadius;
-      var x = Math.sin(toRadians(degOffset)) * parentData.spreadRadius;
-*/
       return "translate(" + d.x + "," + d.y + ")";
     })
     .on("mouseenter", function(d) {
@@ -264,7 +345,8 @@ function drawOverview(mainUnits) {
   approverGroups
     .append("circle")
     .attr("r", function(d) {
-      return Math.max(approverBubbleRadius(d.approverTotalValue), minApproverBubbleRatio * outerRadius);
+      var parentData = d3.select(this.parentNode.parentNode).datum();
+      return Math.max(approverBubbleRadiusGenerator(parentData)(d.approverTotalValue), minApproverBubbleRatio * parentData.outerRadius);
     })
     .style("mix-blend-mode", "multiply")
     .attr("class", "approver-sphere-background")
@@ -316,6 +398,7 @@ function drawOverview(mainUnits) {
 
   function handleClick(d, i) {
     d3.event.stopPropagation();
+    console.log("handleClick");
 
     // first close all open flowers
     closeOpenFlowers();
