@@ -4,6 +4,9 @@ const zoomInDiameterFactor = 0.65;
 function drawOverview(mainUnits) {
   if (freshDataLoaded) {
     calculateTotalValues(mainUnits);
+    if (tableToggleState) {
+      refreshTable(getAllVisibleApprovals());
+    }
   }
 
   var width = parseInt(d3.select('.svg-container').style('width')),
@@ -225,14 +228,6 @@ function drawOverview(mainUnits) {
 
   // outer identity marker (which department and employee count)
 
-/*
-  const fullCircle = {
-    radius: outerRadius - identityMargin,
-    from: 0,
-    to: 2*Math.PI
-  };
-*/
-
   unitGroups // might need to change class name
     .append("svg:path")
     .attr("class", "identity circular-marker")
@@ -286,11 +281,6 @@ function drawOverview(mainUnits) {
   }
 
   unitGroups.each(function(d) {
-/*
-    var approverBubbleRadius = d3.scaleLinear()
-      .domain([0, maxValue])
-      .range([0, maxApproverBubbleRatio * d.outerRadius]);
-*/
 
     var approvers = d.approvers.filter(function(approver) {return !approver.hidden});
     var staticSimulation = d3.forceSimulation(approvers)

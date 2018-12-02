@@ -22,7 +22,7 @@ var mainUnits = [
               },
               {
                 "waitTime": 43,
-                "value": 64000,
+                "value": 87000,
                 "submitter": "Carley Stephanus"
               },
               {
@@ -32,7 +32,7 @@ var mainUnits = [
               },
               {
                 "waitTime": 450,
-                "value": 64000,
+                "value": 87000,
                 "submitter": "Louise Drexel"
               }
             ]
@@ -48,7 +48,7 @@ var mainUnits = [
             "approvals": [
               {
                 "waitTime": 10,
-                "value": 64000,
+                "value": 2900,
                 "submitter": "Cynthia Hope"
               },
               {
@@ -68,12 +68,12 @@ var mainUnits = [
               },
               {
                 "waitTime": 280,
-                "value": 320000,
-                "submitter": "Steve Caper, Jr."
+                "value": 180000,
+                "submitter": "Brian May"
               },
               {
                 "waitTime": 450,
-                "value": 64000,
+                "value": 52000,
                 "submitter": "Frank Reilly"
               }
             ]
@@ -125,7 +125,7 @@ var mainUnits = [
               },
               {
                 "waitTime": 43,
-                "value": 64000,
+                "value": 67000,
                 "submitter": "Carter Dwaine"
               },
               {
@@ -145,12 +145,12 @@ var mainUnits = [
               },
               {
                 "waitTime": 280,
-                "value": 320000,
-                "submitter": "Steve Caper, Jr."
+                "value": 180000,
+                "submitter": "Brian May"
               },
               {
                 "waitTime": 450,
-                "value": 64000,
+                "value": 15000,
                 "submitter": "Zach Princeton"
               }
             ]
@@ -166,7 +166,7 @@ var mainUnits = [
             "approvals": [
               {
                 "waitTime": 10,
-                "value": 64000,
+                "value": 5000,
                 "submitter": "Frank Reilly"
               },
               {
@@ -258,7 +258,7 @@ var mainUnits = [
             "approvals": [
               {
                 "waitTime": 10,
-                "value": 64000,
+                "value": 5000,
                 "submitter": "Alex White"
               },
               {
@@ -273,12 +273,12 @@ var mainUnits = [
               },
               {
                 "waitTime": 80,
-                "value": 64000,
+                "value": 5000,
                 "submitter": "Jennifer Pascal"
               },
               {
                 "waitTime": 450,
-                "value": 64000,
+                "value": 5400,
                 "submitter": "Xhi Choo Ohn"
               }
             ]
@@ -294,7 +294,7 @@ var mainUnits = [
             "approvals": [
               {
                 "waitTime": 10,
-                "value": 64000,
+                "value": 9500,
                 "submitter": "Derek Holmes"
               },
               {
@@ -304,7 +304,7 @@ var mainUnits = [
               },
               {
                 "waitTime": 43,
-                "value": 64000,
+                "value": 9500,
                 "submitter": "Frank Reilly"
               },
               {
@@ -314,12 +314,12 @@ var mainUnits = [
               },
               {
                 "waitTime": 280,
-                "value": 320000,
-                "submitter": "Steve Caper, Jr."
+                "value": 180000,
+                "submitter": "Brian May"
               },
               {
                 "waitTime": 450,
-                "value": 64000,
+                "value": 14000,
                 "submitter": "Ning Hou"
               }
             ]
@@ -361,7 +361,7 @@ var mainUnits = [
             "approvals": [
               {
                 "waitTime": 10,
-                "value": 64000,
+                "value": 14000,
                 "submitter": "Frank Reilly"
               },
               {
@@ -371,7 +371,7 @@ var mainUnits = [
               },
               {
                 "waitTime": 43,
-                "value": 64000,
+                "value": 14000,
                 "submitter": "Frank Reilly"
               },
               {
@@ -391,8 +391,8 @@ var mainUnits = [
               },
               {
                 "waitTime": 280,
-                "value": 320000,
-                "submitter": "Steve Caper, Jr."
+                "value": 180000,
+                "submitter": "Brian May"
               },
               {
                 "waitTime": 450,
@@ -504,7 +504,7 @@ var mainUnits = [
             "approvals": [
               {
                 "waitTime": 10,
-                "value": 64000,
+                "value": 70000,
                 "submitter": "Ning Hou"
               },
               {
@@ -514,17 +514,17 @@ var mainUnits = [
               },
               {
                 "waitTime": 43,
-                "value": 64000,
+                "value": 70000,
                 "submitter": "Frank Reilly"
               },
               {
                 "waitTime": 80,
-                "value": 64000,
+                "value": 70000,
                 "submitter": "Frank Reilly"
               },
               {
                 "waitTime": 450,
-                "value": 64000,
+                "value": 42000,
                 "submitter": "Ning Hou"
               }
             ]
@@ -540,7 +540,7 @@ var mainUnits = [
             "approvals": [
               {
                 "waitTime": 10,
-                "value": 64000,
+                "value": 42000,
                 "submitter": "Frank Reilly"
               },
               {
@@ -550,7 +550,7 @@ var mainUnits = [
               },
               {
                 "waitTime": 43,
-                "value": 64000,
+                "value": 42000,
                 "submitter": "Ning Hou"
               },
               {
@@ -561,11 +561,11 @@ var mainUnits = [
               {
                 "waitTime": 280,
                 "value": 320,
-                "submitter": "Steve Caper, Jr."
+                "submitter": "Brian May"
               },
               {
                 "waitTime": 450,
-                "value": 64000,
+                "value": 92000,
                 "submitter": "Frank Reilly"
               }
             ]
@@ -581,7 +581,7 @@ var mainUnits = [
             "approvals": [
               {
                 "waitTime": 10,
-                "value": 64000,
+                "value": 92000,
                 "submitter": "Ning Hou"
               },
               {
@@ -591,7 +591,7 @@ var mainUnits = [
               },
               {
                 "waitTime": 43,
-                "value": 64000,
+                "value": 150000,
                 "submitter": "Frank Reilly"
               },
               {
@@ -612,7 +612,7 @@ var mainUnits = [
               {
                 "waitTime": 280,
                 "value": 3200,
-                "submitter": "Steve Caper, Jr."
+                "submitter": "Don Mclean"
               },
               {
                 "waitTime": 450,
@@ -744,8 +744,8 @@ var mainUnits = [
               },
               {
                 "waitTime": 92,
-                "value": 320000,
-                "submitter": "Steve Caper, Jr."
+                "value": 180000,
+                "submitter": "Don Mclean"
               },
               {
                 "waitTime": 130,
@@ -760,7 +760,7 @@ var mainUnits = [
               {
                 "waitTime": 280,
                 "value": 320000,
-                "submitter": "Steve Caper, Jr."
+                "submitter": "Don Mclean"
               },
               {
                 "waitTime": 450,
@@ -796,7 +796,7 @@ var mainUnits = [
               },
               {
                 "waitTime": 120,
-                "value": 320000,
+                "value": 80000,
                 "submitter": "Steve Caper, Jr."
               },
               {
@@ -812,7 +812,7 @@ var mainUnits = [
               {
                 "waitTime": 400,
                 "value": 320000,
-                "submitter": "Steve Caper, Jr."
+                "submitter": "Don Mclean"
               },
               {
                 "waitTime": 520,
@@ -852,8 +852,8 @@ var mainUnits = [
               },
               {
                 "waitTime": 92,
-                "value": 320000,
-                "submitter": "Steve Caper, Jr."
+                "value": 80000,
+                "submitter": "Roger Crabs"
               },
               {
                 "waitTime": 130,
@@ -899,7 +899,7 @@ var mainUnits = [
               {
                 "waitTime": 120,
                 "value": 320000,
-                "submitter": "Steve Caper, Jr."
+                "submitter": "Roger Crabs"
               },
               {
                 "waitTime": 340,
@@ -908,7 +908,7 @@ var mainUnits = [
               },
               {
                 "waitTime": 400,
-                "value": 320000,
+                "value": 55000,
                 "submitter": "Steve Caper, Jr."
               }
             ]
@@ -925,7 +925,7 @@ var mainUnits = [
               {
                 "waitTime": 350,
                 "value": 320000,
-                "submitter": "Steve Caper, Jr."
+                "submitter": "Roger Crabs"
               },
               {
                 "waitTime": 370,
@@ -939,8 +939,8 @@ var mainUnits = [
               },
               {
                 "waitTime": 300,
-                "value": 320000,
-                "submitter": "Steve Caper, Jr."
+                "value": 55000,
+                "submitter": "Roger Crabs"
               }
             ]
           }
@@ -1053,4 +1053,32 @@ function filterApproverDataByCriteria(approver, criteria) {
 
   return approver;
 
+}
+
+function getAllVisibleApprovals() {
+  var approvals = [];
+  mainUnits.forEach(function(unit) {
+    unit.approvers.forEach(function(approver) {
+      approver.approvalTypes.forEach(function(approvalType) {
+        approvals = approvals.concat(filterNonHidden(approvalType.approvals));
+      });
+    });
+  });
+  return approvals.sort(function(a,b) {
+    if (a.value > b.value) return -1;
+    if (b.value > a.value) return 1;
+    return 0;
+  });
+}
+
+function getApproverVisibleApprovals(approver) {
+  var approvals = [];
+  approver.approvalTypes.forEach(function(approvalType) {
+    approvals = approvals.concat(filterNonHidden(approvalType.approvals));
+  });
+  return approvals.sort(function(a,b) {
+    if (a.value > b.value) return -1;
+    if (b.value > a.value) return 1;
+    return 0;
+  });
 }

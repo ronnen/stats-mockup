@@ -1,7 +1,9 @@
 var legendToggle = false;
+var tableToggleState = false;
 var drawOverviewListener;
 
 function drawMenu(criteria) {
+  drawTable(); // to be moved to a menu option
   // criteria {totalValueMin, totalValueMax, waitTimeMin, waitTimeMax, amountMin, amountMax, approvalTypes}
 
   var timeRangeMin = criteria.timeRangeMin || 0, timeRangeMax = criteria.timeRangeMax || 100;
@@ -137,25 +139,29 @@ function drawMenu(criteria) {
   }
 
   function drawOverviewByCriteriaHandler(event) {
-    // console.log("drawOverviewByCriteriaHandler");
-/*
-    timeFilterState = true;
-    // valueFilterState = true;
-    amountFilterState = true;
-    waitFilterState = true;
-    timeSlider.range(timeRangeMin,timeRangeMax);
-    // valueSlider.range(totalValueMin,totalValueMax);
-    amountSlider.range(amountMin,amountMax);
-    waitSlider.range(waitTimeMin,waitTimeMax);
-    d3.select("#time-range-filter").classed("on", true);
-    // d3.select("#total-value-filter").classed("on", true);
-    d3.select("#amount-filter").classed("on", true);
-    d3.select("#wait-time-filter").classed("on", true);
-
-    d3.selectAll("#approval-type-switches .type-filter").classed("on", true);
-*/
-
     drawOverviewByCriteria();
+  }
+
+  // Table Toggle
+
+  d3.select("#table-toggle-container .switch-container")
+    .on("click", tableToggleClick);
+
+  function tableToggleClick() {
+    d3.select("#table-toggle-container .table-toggle").classed("on", !tableToggleState);
+    d3.select(".table-container").classed("on", !tableToggleState);
+    tableToggleState = !tableToggleState;
+    if (tableToggleState) {
+      if (d3.select(".main-units.selected").size() > 0) {
+        var selectedUnit = d3.select(".main-units.selected").datum();
+        var selectedApprover = selectedUnit.approvers.find(function(approver) {return approver.selected});
+        refreshTable(getApproverVisibleApprovals(selectedApprover));
+      }
+      else {
+        refreshTable(getAllVisibleApprovals());
+      }
+    }
+
   }
 
   if (drawOverviewListener) window.removeEventListener("drawOverviewByCriteria" , drawOverviewListener);
@@ -192,12 +198,13 @@ function drawMenu(criteria) {
     filterDataByCriteria(criteria);
 
     // if one flower is open then update only its content
-    if (d3.select(".main-units.selected").nodes().length) {
+    if (d3.select(".main-units.selected").size() > 0) {
       var selectedUnit = d3.select(".main-units.selected").datum();
       var selectedApprover = selectedUnit.approvers.find(function(approver) {return approver.selected});
+
       // use selectedUnit.department as key to get original data from mainUnits
-      selectedUnit = mainUnits.find(function(unit) {return unit.department == selectedUnit.department});
-      selectedApprover = selectedUnit.approvers.find(function(approver) {return approver.approverName == selectedApprover.approverName});
+      // selectedUnit = mainUnits.find(function(unit) {return unit.department == selectedUnit.department});
+      // selectedApprover = selectedUnit.approvers.find(function(approver) {return approver.approverName == selectedApprover.approverName});
 
       // filteredData = filterApproverDataByCriteria(selectedApprover, criteria);
       selectedApprover.selected = true;
@@ -207,17 +214,24 @@ function drawMenu(criteria) {
       if (unitGroup.size() > 0) {
         drawDetailedView(selectedApprover, unitGroup.datum(), unitGroup.nodes()[0], drawOverviewParams);
       }
+
+      if (tableToggleState) {
+        refreshTable(getApproverVisibleApprovals(selectedApprover));
+      }
+
     }
     else {
       // update the whole thing
-      // filteredData = filterDataByCriteria(criteria);
-
       mainUnits.forEach(function(unit) {
         delete unit.fx;
         delete unit.fy;
       });
 
       drawOverview(mainUnits);
+
+      if (tableToggleState) {
+        refreshTable(getAllVisibleApprovals());
+      }
     }
 
   }

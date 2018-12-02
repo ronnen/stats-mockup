@@ -22,6 +22,7 @@ function openEditDialog() {
         "x","y","vx","vy",
         "index",
         "hidden",
+        "average",
         "selected",
         "flipText"
       ].indexOf(name) >= 0) ? undefined : val;

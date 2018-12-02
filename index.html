@@ -17,6 +17,7 @@
 <script src="javascripts/drawDetailedView.js"></script>
 <script src="javascripts/menu.js"></script>
 <script src="javascripts/editData.js"></script>
+<script src="javascripts/dataTable.js"></script>
 <script>
 
     document.addEventListener("DOMContentLoaded", function(e) {
@@ -27,10 +28,31 @@
 </script>
 <body>
 <div class="svg-container"></div>
+<div class="table-container">
+    <div class="table-resize">
+        <div class="center-table">
+            <div class="drag-line-1"></div>
+            <div class="drag-line-2"></div>
+            <div class="drag-line-3"></div>
+            <div class="drag-line-4"></div>
+        </div>
+    </div>
+    <div class="table-rows">
+
+    </div>
+</div>
 <div class="menu-right">
     <div class="actions-container">
         <div class="legend-button">Legend</div>
         <div class="load-data">Load Data</div>
+    </div>
+    <div id="table-toggle-container">
+        <div class="table-toggle">
+            <div class="stats-filter-title">Tabular View</div>
+            <div class="switch-container">
+                <div class="switch-handle"></div>
+            </div>
+        </div>
     </div>
     <div id="custom-filter" class="custom-filter">
         <div class="custom-filter-container">
