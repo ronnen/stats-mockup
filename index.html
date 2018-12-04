@@ -11,6 +11,7 @@
 <script src="javascripts/vendor/d3-transform.js"></script>
 <script src="javascripts/vendor/d3RangeSlider.js"></script>
 <script src="javascripts/vendor/ace.js" type="text/javascript" charset="utf-8"></script>
+<script src="javascripts/vendor/papaparse.min.js" type="text/javascript" charset="utf-8"></script>
 <script src="javascripts/data.js"></script>
 <script src="javascripts/common.js"></script>
 <script src="javascripts/drawOverview.js"></script>
@@ -19,12 +20,13 @@
 <script src="javascripts/editData.js"></script>
 <script src="javascripts/dataTable.js"></script>
 <script>
+    var debugMode = false;
 
     document.addEventListener("DOMContentLoaded", function(e) {
+        debugMode = getUrlVars()["debug"];
+        if (debugMode) d3.select("body").classed("debug", true);
         drawOverview(mainUnits);
     });
-
-
 </script>
 <body>
 <div class="svg-container"></div>
@@ -146,6 +148,7 @@
         <div class="editor-actions">
             <div class="cancel-edit">Cancel</div>
             <div class="load-edit">Load</div>
+            <div class="view-json">View as JSON</div>
         </div>
     </div>
 </div>

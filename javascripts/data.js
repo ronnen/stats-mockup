@@ -252,7 +252,7 @@ var mainUnits = [
     "employees": 62,
     "approvers": [
       {
-        "approverName": "Sam Katwan",
+        "approverName": "Peter Ham",
         "approvalTypes": [
           {
             "label": "Purchase Orders",
