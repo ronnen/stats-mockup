@@ -242,12 +242,92 @@ function drawMenu(criteria) {
   function legendClickEvent(event) {
     const identityMargin = 20;
 
+    // we try to find enough visible bubbles to show the different legend elements
     d3.event.preventDefault();
     d3.event.stopPropagation();
-    var selectedUnit = d3.select(".main-units.selected").size() ? d3.select(".main-units.selected") : d3.select(".main-units");
+
+    if (legendToggle) {
+      d3.select(window).on("click",null);
+      d3.selectAll('.legend-svg').remove();
+      d3.select(".shield").classed("on dark", false);
+      d3.select(".mainObjectLegend")
+        .style("display","none");
+      d3.select(".bigDiameterLegend")
+        .style("display","none");
+      d3.selectAll(".main-units").classed("legend-unit", false);
+      legendToggle = !legendToggle;
+      return;
+    }
+
+    var w = window,
+      d = document,
+      e = d.documentElement,
+      g = d.querySelector('.svg-container'),
+      screenWidth = /*w.innerWidth || e.clientWidth ||*/ g.clientWidth,
+      screenHeight = /*w.innerHeight || e.clientHeight ||*/ g.clientHeight;
+
+    var svg = d3.select("svg");
+
+    function findLargestVisibleUnit(selection) {
+      if (selection.size() > 0) {
+        // find most visible unit
+        var mostVisible = 0, mostVisibleIndex = -1;
+        selection.each(function(d,i) {
+          var rect = this.getBoundingClientRect();
+          var left = Math.max(0, rect.left);
+          var right = Math.min(screenWidth, rect.right);
+          var top = Math.max(0, rect.top);
+          var bottom = Math.min(screenHeight, rect.bottom);
+          if ((right-left)*(bottom-top) > mostVisible) {
+            mostVisibleIndex = i;
+            mostVisible = (right-left)*(bottom-top);
+          }
+        });
+        if (mostVisible) {
+          return d3.select(selection.nodes()[mostVisibleIndex]);
+        }
+        else
+          return null;
+      }
+    }
+
+    var selectedUnit = d3.select(".main-units.selected").size() ? d3.select(".main-units.selected") : findLargestVisibleUnit(d3.selectAll(".main-units"));
+    if (!selectedUnit) return;
+
     var circle = selectedUnit.select(".detailed-group circle").size() ? selectedUnit.select(".detailed-group circle") : selectedUnit.select(".closed-sphere-background");
     if (circle.size() <= 0) return;
     var outerRadius = parseFloat(circle.attr("r"));
+    selectedUnit.classed("legend-unit legend-round", true);
+
+    var employeeLegendUnit = d3.selectAll(".main-units").filter(function(d, i) {
+      return !d3.select(this).classed("legend-unit")
+    });
+
+    employeeLegendUnit = findLargestVisibleUnit(employeeLegendUnit)
+
+    if (employeeLegendUnit) {
+      employeeLegendUnit.classed("legend-unit employee-legend", true);
+
+      // find most visible unit
+      var mostVisible = 0, mostVisibleIndex = -1;
+      employeeLegendUnit.each(function(d,i) {
+        var rect = this.getBoundingClientRect();
+        var left = Math.max(0, rect.left);
+        var right = Math.min(screenWidth, rect.right);
+        var top = Math.max(0, rect.top);
+        var bottom = Math.min(screenHeight, rect.bottom);
+        if ((right-left)*(bottom-top) > mostVisible) {
+          mostVisibleIndex = i;
+          mostVisible = (right-left)*(bottom-top);
+        }
+      });
+      if (mostVisible) {
+        employeeLegendUnit = d3.select(employeeLegendUnit.nodes()[mostVisibleIndex]);
+        employeeLegendUnit.classed("legend-unit employee-legend", true);
+      }
+      else
+        employeeLegendUnit = null;
+    }
 
     var arcLegendCircle = d3.arc()
       .startAngle(0)
@@ -255,69 +335,84 @@ function drawMenu(criteria) {
       .innerRadius(outerRadius - identityMargin)
       .outerRadius(outerRadius - identityMargin);
 
-    var svg = d3.select("svg");
-
     console.log("show or hide legend " + legendToggle);
 
-    if (!legendToggle) {
-      d3.selectAll('.dark-legend').remove(); // just to make sure
+    d3.selectAll('.legend-svg').remove(); // just to make sure
+    d3.select(".shield").classed("on dark", true);
 
-      var w = window,
-        d = document,
-        e = d.documentElement,
-        g = d.getElementsByTagName('.svg-container')[0],
-        x = w.innerWidth || e.clientWidth || g.clientWidth,
-        y = w.innerHeight || e.clientHeight || g.clientHeight;
+    var mainSVGRect = svg.node().getBoundingClientRect();
 
-      var darkScreen = svg
-        .append("svg:g")
-        .attr("class", "dark-legend");
+    var legendSVG = d3.select("body").append("svg")
+      .attr("x",mainSVGRect.x)
+      .attr("y",mainSVGRect.y)
+      .attr("width", mainSVGRect.width)
+      .attr("height", mainSVGRect.height)
+      .attr("class","legend-svg")
+      .style("position", "fixed");
 
-      darkScreen
-        .append("rect")
-        .attr("width", x)
-        .attr("height", y);
+    var legendScreen = legendSVG
+      .append("svg:g")
+      .attr("class", "main-legend-group");
 
-      // by now the transform of the detailed sphere has change due to forceSimulation so
-      // need to sample it again.
-      var rect = selectedUnit.node().getBoundingClientRect();
+    // by now the transform of the detailed sphere has change due to forceSimulation so
+    // need to sample it again.
+    var rect = selectedUnit.node().getBoundingClientRect();
 
-      var legendGroup = darkScreen
+    var legendGroup = legendScreen
+      .append("svg:g")
+      .attr("class", "legend-group")
+      .attr("transform", "translate(" + (rect.x + rect.width/2) + "," + (rect.y + rect.height/2) + ")");
+
+    // add circular legend
+    legendGroup
+      .append("svg:path")
+      .attr("class", "circular-legend")
+      .attr("d", arcLegendCircle());
+
+    var pX = Math.cos(toRadians(240))*(outerRadius - identityMargin),
+      pY = Math.sin(toRadians(240))*(outerRadius - identityMargin);
+
+    legendGroup
+      .append("line")
+      .attr("class", "circular-legend")
+      .attr("x1", pX).attr("y1", pY).attr("x2", pX-40).attr("y2", pY);
+    legendGroup
+      .append("line")
+      .attr("class", "circular-legend")
+      .attr("x1", pX).attr("y1", pY).attr("x2", pX).attr("y2", pY+40);
+
+    d3.select(".mainObjectLegend")
+      .style("display","block")
+      .style("left", (rect.x + rect.width/2) + "px")
+      .style("top", (rect.y + rect.height/2) + "px")
+      .raise();
+
+    if (employeeLegendUnit) {
+      // add diameter to employee legend unit
+      rect = employeeLegendUnit.node().getBoundingClientRect();
+
+      var diameter1 = legendScreen
         .append("svg:g")
         .attr("class", "legend-group")
-        .attr("transform", "translate(" + (rect.x + rect.width/2) + "," + (rect.y + rect.height/2) + ")");
+        .attr("transform", "translate(" + (rect.x + rect.width / 2) + "," + (rect.y + rect.height / 2) + ")");
 
-      // add circular legend
-      legendGroup
-        .append("svg:path")
-        .attr("class", "circular-legend")
-        .attr("d", arcLegendCircle());
-
-      var pX = Math.cos(toRadians(240))*(outerRadius - identityMargin),
-        pY = Math.sin(toRadians(240))*(outerRadius - identityMargin);
-
-      legendGroup
+      var employeeUnitRadius = employeeLegendUnit.datum().outerRadius;
+      diameter1
         .append("line")
-        .attr("class", "circular-legend")
-        .attr("x1", pX).attr("y1", pY).attr("x2", pX-40).attr("y2", pY);
-      legendGroup
-        .append("line")
-        .attr("class", "circular-legend")
-        .attr("x1", pX).attr("y1", pY).attr("x2", pX).attr("y2", pY+40);
+        .attr("class","diameter-legend")
+        .attr("x1", -employeeUnitRadius)
+        .attr("x2", employeeUnitRadius)
+        .attr("y1", 0)
+        .attr("y2", 0);
 
-      d3.select(".mainObjectLegend")
+      d3.select(".bigDiameterLegend")
         .style("display","block")
-        .style("left", (rect.x + rect.width/2) + "px")
-        .style("top", (rect.y + rect.height/2) + "px");
+        .style("left", (rect.right + 20) + "px")
+        .style("top", (rect.y + rect.height/2) + "px")
+        .raise();
+    }
 
-      d3.select(window).on("click",legendClickEvent);
-    }
-    else {
-      d3.select(window).on("click",null);
-      d3.selectAll('.dark-legend').remove();
-      d3.select(".mainObjectLegend")
-        .style("display","none");
-    }
+    d3.select(window).on("click",legendClickEvent);
 
     legendToggle = !legendToggle;
 

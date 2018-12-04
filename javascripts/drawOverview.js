@@ -24,11 +24,18 @@ function drawOverview(mainUnits) {
   var svg, mainGroup, maxValue, minWait, maxWait, minAmount, maxAmount;
 
   // calculate appropriate factor for outerRadius
-  var sumOfTotalValue = d3.sum(mainUnits, function(d) {return d.unitTotalValue});
-  var outerRadiusFactor = width*height*0.7 / (sumOfTotalValue || 1); // measure how much space per unit given screen size
+
+  // if we want to go with total value of approvals to represent bubble size
+  // var sumOfTotalValue = d3.sum(mainUnits, function(d) {return d.unitTotalValue});
+  // var outerRadiusFactor = width*height*0.7 / (sumOfTotalValue || 1); // measure how much space per unit given screen size
+
+  // if we want to go with # of employees to represent bubble size
+  var sumOfEmployees = d3.sum(mainUnits, function(d) {return d.employees});
+  var outerRadiusFactor = width*height*0.7 / (sumOfEmployees || 1); // measure how much space per unit given screen size
 
   mainUnits.forEach(function(d) {
-    d.outerRadius = Math.sqrt(d.unitTotalValue * outerRadiusFactor / Math.PI);
+    // d.outerRadius = Math.sqrt(d.unitTotalValue * outerRadiusFactor / Math.PI);
+    d.outerRadius = Math.sqrt(d.employees * outerRadiusFactor / Math.PI);
   });
 
   maxValue = d3.max(mainUnits.map(function(v) {

@@ -1,7 +1,8 @@
 
 var mainUnits = [
   {
-    "department": "Sales Dept. 34 employees",
+    "department": "Sales Dept.",
+    "employees": 34,
     "approvers": [
       {
         "approverName": "George Wallace",
@@ -247,7 +248,8 @@ var mainUnits = [
     ]
   },
   {
-    "department": "Supply Chain Dept. 12 employees",
+    "department": "Supply Chain Dept.",
+    "employees": 62,
     "approvers": [
       {
         "approverName": "Sam Katwan",
@@ -493,7 +495,8 @@ var mainUnits = [
     ]
   },
   {
-    "department": "Customer Success Dept. 34 employees",
+    "department": "Customer Success Dept.",
+    "employees": 45,
     "approvers": [
       {
         "approverName": "Linda Grey",
@@ -713,7 +716,8 @@ var mainUnits = [
     ]
   },
   {
-    "department": "R&D Dept. 54 employees",
+    "department": "R&D Dept.",
+    "employees": 54,
     "approvers": [
       {
         "approverName": "Billie Hollins",
@@ -826,7 +830,8 @@ var mainUnits = [
     ]
   },
   {
-    "department": "Marketing Dept. 26 employees",
+    "department": "Marketing Dept.",
+    "employees": 26,
     "approvers": [
       {
         "approverName": "Perikilis Nazario",
@@ -974,7 +979,7 @@ function calculateTotalValues(originalData) {
       }, 0);
     }, 0);
 
-    unit.unitLabel = unit.department + " " + approvalCount + " approvals";
+    unit.unitLabel = unit.department + " " + unit.employees + " employees " + approvalCount + " approvals";
   });
 
   originalData.forEach(function(unit) {
